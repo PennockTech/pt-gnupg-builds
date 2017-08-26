@@ -1,3 +1,4 @@
 #!/bin/sh -eu
 
-/vagrant/vscripts/deps.py
+env > /out/debug.env.$(hostname).log
+/vagrant/vscripts/deps.py > /out/debug.$(hostname).log

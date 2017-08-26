@@ -10,6 +10,11 @@ echo UTC > /etc/timezone
 dpkg-reconfigure tzdata
 unset TZ
 
+# If we have override packages for this OS for anything installed as a
+# build-dep below then we'll need the key trusted early.
+# (This bit me with `jq` on trusty).
+apt-key add /vagrant/apt-repo-keyring.asc
+
 if [ -f /tmp/done.gnupg.baseupdate ]; then
   echo "$0: skipping core update/upgrade"
 else
@@ -39,6 +44,7 @@ case $(lsb_release -sc) in
     ;;
 esac
 
+# Be careful to not include here
 pt_apt_get build-dep gnupg2 pinentry
 pt_apt_get install libsqlite3-dev libncurses5-dev lzip jq xz-utils
 # ruby-dev for fpm
@@ -50,3 +56,9 @@ pt_apt_get install ruby ruby-dev python3 git curl
 # fpm as a means to an end.
 echo "$0: gem install fpm"
 gem install --no-ri --no-rdoc fpm
+
+# -----------------------------8< cut here >8-----------------------------
+# If we ever have non-debian stuff, we'll probably want to move stuff after
+# here out to a separate root-run setup stage.
+mkdir -pv /out
+chown -R "${SUDO_UID:-vagrant}:${SUDO_GID:-vagrant}" /out

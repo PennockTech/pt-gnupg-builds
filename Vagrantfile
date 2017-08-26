@@ -18,6 +18,8 @@ PTBOXES = [
   PTBuild.new("jessie", "debian/jessie64", "debian-family", nil),
 ]
 
+asset_indir = ENV["PT_GNUPG_IN"] || "./in"
+
 Vagrant.configure("2") do |config|
   # In each box, this directory is exposed as /vagrant, read-write
   # On _some_ OSes, writes propagate back to us.
@@ -28,9 +30,27 @@ Vagrant.configure("2") do |config|
   # any at the inner layer, thus we can't have per-OS init before common
   # build stages.  So instead, we make it a one-liner to do each step.
 
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 4096
+    v.cpus = 2
+  end
+
   PTBOXES.each do |ptb|
     config.vm.define ptb.name, autostart: false do |node|
       node.vm.box = ptb.box
+
+      # only ever _add_ files to /in, never delete; assume large binaries which never have
+      # small deltas.  Copy only on demand, don't stomp on things mid-script.
+      config.vm.synced_folder "#{asset_indir}/", "/in", create: true, type: "rsync",
+        rsync__args: ["--verbose", "--rsync-path='sudo rsync'", "--archive", "--checksum", "--whole-file"],
+        rsync__auto: false
+
+      # TODO: support AWS/GCE/whatever as well as local images
+      #
+      # There are provenance chain issues for GnuPG built remotely, but as long
+      # as we're using public base images there's really not a big difference.
+      # If you're very cautious then you'll want to adjust the .box field of
+      # each VM in the list above.
 
       # intended for stuff like configuring apt caches, very local
       # open to better ways of doing this

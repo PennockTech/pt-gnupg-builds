@@ -21,7 +21,18 @@ We're using Vagrant to build packages.  Details TBD.
 ```console
 % vagrant status
 % vagrant up xenial
+## if problems: edit, fix, then:
+% vagrant provision xenial
 ```
+
+The contents of the `./in` directory are unidirectionally rsync'd towards
+the VM into `/in/` on `up` and each `reload`.  The build scripts download
+large assets into that directory, if they don't already exist.  `./in` is git
+ignored, so this is an appropriate place to store cached assets between
+attempts.  The environment variable `PT_GNUPG_IN` can be used to point to a
+different local location.
+
+---
 
 Build, ensure synced back, copy towards destination and aptly add, snapshot,
 etc.
