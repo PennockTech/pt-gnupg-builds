@@ -34,6 +34,8 @@ ignored, so this is an appropriate place to store cached assets between
 attempts.  The environment variable `PT_GNUPG_IN` can be used to point to a
 different local location.
 
+You can sync more assets in with `vagrant rsync $machine_name`
+
 ---
 
 Leave publish/signing for manual step, but emit instructions.
