@@ -6,7 +6,9 @@ Vagrant.configure("2") do |config|
   # https://app.vagrantup.com/boxes/search
   config.vm.box = "ubuntu/xenial64"
 
-  config.vm.synced_folder "./vscripts", "/vagrant_scripts"
+  # Note that "./" is automatically synced to "/vagrant", read-write
+  # So this is unneeded, instead `/vagrant/vscripts`
+  #config.vm.synced_folder "./vscripts", "/vagrant_scripts"
 
   config.vm.provision "shell", inline: <<-SHELL
     umask 022
