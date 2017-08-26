@@ -9,13 +9,19 @@ rm -f /etc/timezone
 echo UTC > /etc/timezone
 dpkg-reconfigure tzdata
 unset TZ
-pt_apt_get update
-# no ability to sanely replace kernels, while Vagrant should have gotten a
-# recent enough system for us, that for our purposes whatever kernel
-# we have is fine.  So stick to `upgrade` not `dist-upgrade`
-pt_apt_get upgrade
-pt_apt_get autoremove
-dpkg -l | grep '^rc' | awk '{ print $2 }' | xargs apt-get --assume-yes purge
+
+if [ -f /tmp/done.gnupg.baseupdate ]; then
+  echo "$0: skipping core update/upgrade"
+else
+  pt_apt_get update
+  # no ability to sanely replace kernels, while Vagrant should have gotten a
+  # recent enough system for us, that for our purposes whatever kernel
+  # we have is fine.  So stick to `upgrade` not `dist-upgrade`
+  pt_apt_get upgrade
+  pt_apt_get autoremove
+  dpkg -l | grep '^rc' | awk '{ print $2 }' | xargs apt-get --assume-yes purge
+  date > /tmp/done.gnupg.baseupdate
+fi
 
 echo "$0: apt packages for building GnuPG and friends"
 
@@ -23,7 +29,17 @@ echo "$0: apt packages for building GnuPG and friends"
 pt_apt_get install apt-transport-https
 
 pt_apt_get install build-essential
-pt_apt_get build-dep gnupg2 pinentry gnutls-bin
+case $(lsb_release -sc) in
+  trusty)
+    pt_apt_get install automake
+    pt_apt_get build-dep gnutls28
+    ;;
+  *)
+    pt_apt_get build-dep gnutls-bin
+    ;;
+esac
+
+pt_apt_get build-dep gnupg2 pinentry
 pt_apt_get install libsqlite3-dev libncurses5-dev lzip jq xz-utils
 # ruby-dev for fpm
 pt_apt_get install ruby ruby-dev python3 git curl

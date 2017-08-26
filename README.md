@@ -22,3 +22,13 @@ We're using Vagrant to build packages.  Details TBD.
 % vagrant status
 % vagrant up xenial
 ```
+
+Build, ensure synced back, copy towards destination and aptly add, snapshot,
+etc.
+
+Leave publish/signing for manual step, but emit instructions.
+
+If no repo defined, how figure out what needed?
+Have a `version-bumps.conf` file: `gnupg21 2.1.23 3` to build `-pdp3` not
+`-pdp1`.
+Have `patches/gnupg21-2.1.23-*` and `patches/gnupg21-all-*`

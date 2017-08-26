@@ -3,17 +3,19 @@
 # https://docs.vagrantup.com
 
 class PTBuild
-  attr_reader :name, :box, :base_script
-  def initialize(name, box, base_script)
+  attr_reader :name, :box, :base_script, :repo
+  def initialize(name, box, base_script, repo)
     @name = name
     @box = box  # https://app.vagrantup.com/boxes/search
     @base_script = base_script
+    @repo = repo
   end
 end
 
 PTBOXES = [
-  PTBuild.new("xenial", "ubuntu/xenial64", "debian-family"),
-  PTBuild.new("jessie", "debian/jessie64", "debian-family"),
+  PTBuild.new("xenial", "ubuntu/xenial64", "debian-family", nil),
+  PTBuild.new("trusty", "ubuntu/trusty64", "debian-family", "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main"),
+  PTBuild.new("jessie", "debian/jessie64", "debian-family", nil),
 ]
 
 Vagrant.configure("2") do |config|
@@ -40,9 +42,18 @@ Vagrant.configure("2") do |config|
 
       # core OS update and prep for Doing Things
       node.vm.provision "shell", path: "os/update.#{ptb.base_script}.sh", name: "os-update"
+      #
+      # apt/whatever site-local setup for fetching existing packages
+      if !ptb.repo.nil?
+        node.vm.provision "shell" do |s|
+          s.name = "gnupg-repo-setup"
+          s.path = "os/gnupg-repos.#{ptb.base_script}.sh"
+          s.args = [ptb.repo]
+        end
+      end
 
       node.vm.provision "shell", path: "vscripts/user.presetup.sh", privileged: false, name: "user-presetup"
-      node.vm.provision "shell", path: "vscripts/build.py", privileged: false, name: "build"
+      node.vm.provision "shell", path: "vscripts/build.sh", privileged: false, name: "build"
     end
   end
 
