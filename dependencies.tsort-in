@@ -1,0 +1,15 @@
+gnupg21       gnupg21
+gmp           nettle
+nettle        gnutls
+gnutls        gnupg21
+npth          gnupg21
+libgpg-error  libgcrypt
+libgpg-error  libksba
+libgpg-error  libassuan
+libgpg-error  pinentry
+libgpg-error  gnupg21
+libgcrypt     gnupg21
+libksba       gnupg21
+libassuan     pinentry
+libassuan     gnupg21
+pinentry      gnupg21

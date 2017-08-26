@@ -18,6 +18,8 @@ PTBOXES = [
 
 Vagrant.configure("2") do |config|
   # In each box, this directory is exposed as /vagrant, read-write
+  # On _some_ OSes, writes propagate back to us.
+  #
   # We can't reboot during provision
   #
   # If we define provision steps at this outer layer, they're run before
@@ -32,14 +34,15 @@ Vagrant.configure("2") do |config|
       # open to better ways of doing this
       if ENV["NAME"] == "Phil Pennock"
         if File.exists?("os/ptlocal.#{ptb.base_script}.sh")
-          node.vm.provision "shell", path: "os/ptlocal.#{ptb.base_script}.sh"
+          node.vm.provision "shell", path: "os/ptlocal.#{ptb.base_script}.sh", name: "pennocktech-local"
         end
       end
 
       # core OS update and prep for Doing Things
-      node.vm.provision "shell", path: "os/update.#{ptb.base_script}.sh"
+      node.vm.provision "shell", path: "os/update.#{ptb.base_script}.sh", name: "os-update"
 
-      # actual package building to go here
+      node.vm.provision "shell", path: "vscripts/user.presetup.sh", privileged: false, name: "user-presetup"
+      node.vm.provision "shell", path: "vscripts/build.py", privileged: false, name: "build"
     end
   end
 
