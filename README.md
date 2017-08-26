@@ -17,3 +17,8 @@ Building
 --------
 
 We're using Vagrant to build packages.  Details TBD.
+
+```console
+% vagrant status
+% vagrant up xenial
+```
