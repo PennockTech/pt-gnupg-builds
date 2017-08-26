@@ -12,7 +12,7 @@ class PTBuild
   end
 end
 
-PTBOXES = [
+PTMACHINES = [
   PTBuild.new("xenial", "ubuntu/xenial64", "debian-family", nil),
   PTBuild.new("trusty", "ubuntu/trusty64", "debian-family", "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main"),
   PTBuild.new("jessie", "debian/jessie64", "debian-family", nil),
@@ -21,7 +21,7 @@ PTBOXES = [
 asset_indir = ENV["PT_GNUPG_IN"] || "./in"
 
 Vagrant.configure("2") do |config|
-  # In each box, this directory is exposed as /vagrant, read-write
+  # In each machine, this directory is exposed as /vagrant, read-write
   # On _some_ OSes, writes propagate back to us.
   #
   # We can't reboot during provision
@@ -35,7 +35,7 @@ Vagrant.configure("2") do |config|
     v.cpus = 2
   end
 
-  PTBOXES.each do |ptb|
+  PTMACHINES.each do |ptb|
     config.vm.define ptb.name, autostart: false do |node|
       node.vm.box = ptb.box
 

@@ -1,5 +1,6 @@
 #!/bin/sh -eu
 
+# shellcheck source=../params.env
 . /vagrant/params.env
 
 # Trying to use system ruby, gem, etc is a pain.

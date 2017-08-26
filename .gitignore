@@ -1,3 +1,4 @@
 /*.log
 /in/
 /out/
+/tmp.ssh-config.*

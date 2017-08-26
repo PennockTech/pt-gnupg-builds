@@ -20,9 +20,11 @@ We're using Vagrant to build packages.  Details TBD.
 
 ```console
 % vagrant status
-% vagrant up xenial
+## see list of machines, typically named for OS
+% ./build.sh xenial
 ## if problems: edit, fix, then:
 % vagrant provision xenial
+## and repeat until build.sh might work.
 ```
 
 The contents of the `./in` directory are unidirectionally rsync'd towards
@@ -33,9 +35,6 @@ attempts.  The environment variable `PT_GNUPG_IN` can be used to point to a
 different local location.
 
 ---
-
-Build, ensure synced back, copy towards destination and aptly add, snapshot,
-etc.
 
 Leave publish/signing for manual step, but emit instructions.
 
