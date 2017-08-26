@@ -19,6 +19,8 @@ PTMACHINES = [
 ]
 
 asset_indir = ENV["PT_GNUPG_IN"] || "./in"
+# Canonical would be: https://www.gnupg.org/ftp/gcrypt/
+download_mirror = ENV["PT_GNUPG_DOWNLOAD_MIRROR"] || "https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/"
 
 Vagrant.configure("2") do |config|
   # In each machine, this directory is exposed as /vagrant, read-write
@@ -73,7 +75,13 @@ Vagrant.configure("2") do |config|
       end
 
       node.vm.provision "shell", path: "vscripts/user.presetup.sh", privileged: false, name: "user-presetup"
-      node.vm.provision "shell", path: "vscripts/build.sh", privileged: false, name: "build"
+
+      node.vm.provision "shell" do |s|
+        s.name = "build"
+        s.path = "vscripts/build.sh"
+        s.privileged = false
+        s.args = ["MIRROR=#{download_mirror}"]
+      end
     end
   end
 

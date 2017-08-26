@@ -1,0 +1,9 @@
+{
+  "about": "These are the third-party products which we depend upon",
+  "products": {
+    "gmp": { "version": "6.1.2", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
+    "nettle": { "version": "3.3", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
+    "gnutls": { "version": "3.5.10", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/" }
+  },
+  "_final": "vim: set ft=json sw=2 :"
+}
