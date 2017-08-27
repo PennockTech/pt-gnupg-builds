@@ -39,9 +39,10 @@ You can sync more assets in with `vagrant rsync $machine_name`
 Updating
 --------
 
-* Adding a new box (OS) for building on should just be a new `PTBuild` item in
-  the `PTMACHINES` array in `Vagrantfile`
-* A new version of GnuPG software should come automatically from swdb.lst
+* Adding a new box (OS) for building on goes into `confs/machines.json`; the
+  values are parsed in the `Vagrantfile` and also used elsewhere (`jq` in
+  scripts).
+* A new version of GnuPG software should come automatically from `swdb.lst`
 * A new version of non-GnuPG dependent software goes in `confs/versions.json`
 * Changing how a package is built goes in `confs/configures.json`
 * Adding an "A needed for B" dependency ordering goes in the
@@ -52,6 +53,8 @@ Updating
   key-dumps in `confs/` and in `pgp_ownertrusts` defined in `confs/params.env`
 
 ---
+
+TODO FIXME:
 
 Leave publish/signing for manual step, but emit instructions.
 

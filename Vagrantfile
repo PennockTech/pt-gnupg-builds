@@ -12,11 +12,10 @@ class PTBuild
   end
 end
 
-PTMACHINES = [
-  PTBuild.new("xenial", "ubuntu/xenial64", "debian-family", nil),
-  PTBuild.new("trusty", "ubuntu/trusty64", "debian-family", "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main"),
-  PTBuild.new("jessie", "debian/jessie64", "debian-family", nil),
-]
+PTMACHINES = []
+JSON.load(open('confs/machines.json')).each do |m|
+  PTMACHINES << PTBuild.new(m['name'], m['box'], m['base_script'], m['repo'])
+end
 
 asset_indir = ENV["PT_GNUPG_IN"] || "./in"
 # Canonical would be: https://www.gnupg.org/ftp/gcrypt/

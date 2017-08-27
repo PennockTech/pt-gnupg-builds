@@ -1,0 +1,18 @@
+[
+  {
+    "name": "xenial",
+    "box": "ubuntu/xenial64",
+    "base_script": "debian-family"
+  },
+  {
+    "name": "trusty",
+    "box": "ubuntu/trusty64",
+    "base_script": "debian-family",
+    "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main"
+  },
+  {
+    "name": "jessie",
+    "box": "jessie/jessie64",
+    "base_script": "debian-family"
+  }
+]
