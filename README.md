@@ -36,6 +36,21 @@ different local location.
 
 You can sync more assets in with `vagrant rsync $machine_name`
 
+Updating
+--------
+
+* Adding a new box (OS) for building on should just be a new `PTBuild` item in
+  the `PTMACHINES` array in `Vagrantfile`
+* A new version of GnuPG software should come automatically from swdb.lst
+* A new version of non-GnuPG dependent software goes in `confs/versions.json`
+* Changing how a package is built goes in `confs/configures.json`
+* Adding an "A needed for B" dependency ordering goes in the
+  `confs/dependencies.tsort-in` file (use `column -t` for formatting, `tsort`
+  to see the resulting order).
+* The only items built are those in the dependencies file.
+* Changes in PGP signing keys will need to be reflected _both_ in the
+  key-dumps in `confs/` and in `pgp_ownertrusts` defined in `confs/params.env`
+
 ---
 
 Leave publish/signing for manual step, but emit instructions.

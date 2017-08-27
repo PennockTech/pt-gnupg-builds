@@ -21,11 +21,11 @@ import requests
 
 # All defaults which should be overrideable with flags.
 BASE_DIR = '~/src'
-DEPENDENCIES_FN = '/vagrant/dependencies.tsort-in'
+DEPENDENCIES_FN = '/vagrant/confs/dependencies.tsort-in'
 SWDB_FN = './swdb.lst'
 TARBALLS_DIR = '/in'
-VERSIONS_FN = '/vagrant/versions.json'
-CONFIGURES_FN = '/vagrant/configures.json'
+VERSIONS_FN = '/vagrant/confs/versions.json'
+CONFIGURES_FN = '/vagrant/confs/configures.json'
 MIRROR_URL = 'https://www.gnupg.org/ftp/gcrypt/'
 
 class Error(Exception):

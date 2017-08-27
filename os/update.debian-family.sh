@@ -13,7 +13,7 @@ unset TZ
 # If we have override packages for this OS for anything installed as a
 # build-dep below then we'll need the key trusted early.
 # (This bit me with `jq` on trusty).
-apt-key add /vagrant/apt-repo-keyring.asc
+apt-key add /vagrant/confs/apt-repo-keyring.asc
 
 if [ -f /tmp/done.gnupg.baseupdate ]; then
   echo "$0: skipping core update/upgrade"

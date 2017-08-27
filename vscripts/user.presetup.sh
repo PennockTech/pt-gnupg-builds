@@ -1,7 +1,7 @@
 #!/bin/sh -eu
 
-# shellcheck source=../params.env
-. /vagrant/params.env
+# shellcheck source=../confs/params.env
+. /vagrant/confs/params.env
 
 # Trying to use system ruby, gem, etc is a pain.
 # If someone comes up with an fpm alternative in Go or Rust or other sane
@@ -11,7 +11,7 @@
 # image, it's okay to litter Ruby "Everywhere".
 
 echo "$0: GnuPG SWDB and tarballs signing keys setup"
-gpg --import /vagrant/pgp-swdb-signing-key.asc /vagrant/tarballs-keyring.asc
+gpg --import /vagrant/confs/pgp-swdb-signing-key.asc /vagrant/confs/tarballs-keyring.asc
 # We'd like to use:  gpg --tofu-policy good $swdb_key
 # but we don't yet know that we have a version of GnuPG good enough
 # so instead we hard-code as trusted the keys we verify against.
