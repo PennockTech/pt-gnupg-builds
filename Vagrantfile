@@ -13,8 +13,11 @@ class PTBuild
 end
 
 PTMACHINES = []
+pt_seen_machines = Set.new
 JSON.load(open('confs/machines.json')).each do |m|
+  raise "duplicate definition for #{m['name']}" if pt_seen_machines.include?(m['name'])
   PTMACHINES << PTBuild.new(m['name'], m['box'], m['base_script'], m['repo'])
+  pt_seen_machines.add(m['name'])
 end
 
 asset_indir = ENV["PT_GNUPG_IN"] || "./in"
