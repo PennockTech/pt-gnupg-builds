@@ -48,6 +48,11 @@ if $REPO_NEED_GPG_AGENT; then
 else
   agent_start=':' agent_end=':'
 fi
+if [[ -n "${REPO_PATH_PREPEND:-}" ]]; then
+  path_fixup="export PATH=\"${REPO_PATH_PREPEND}:\\\$PATH\""
+else
+  path_fixup=':'
+fi
 
 # packages are added to repos
 # snapshots are created from repos
@@ -60,10 +65,10 @@ cd '${REPO_INGEST_DIR}'
 aptly repo add '${REPO_NAME}' ${debs[@]##*/}
 snap='${REPO_SNAP_PREFIX}-$(date +%Y%m%d-%H%M%S)'
 aptly snapshot create "\$snap" from repo '${REPO_NAME}'
-snap=spodhuis-gnupg-20170827-154508
 rm -rf .publish
 cat > .publish <<EOPUBLISH
 #!/bin/sh -eu
+$path_fixup
 $agent_start
 aptly_publish() { aptly publish -gpg-key '${REPO_KEY}' -architectures '${REPO_ARCHS}' "\\\$@" ; }
 EOPUBLISH

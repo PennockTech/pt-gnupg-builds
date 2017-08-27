@@ -24,6 +24,10 @@ do
       export PKG_VERSIONEXT
       typeset -p PKG_VERSIONEXT >> "$env_file"
       ;;
+    PKG_CONFIG_PATH=*)
+      # this one is a pass-thru from Vagrant, oops FIXME stop using this argv mechanism
+      true
+      ;;
     *)
       printf >&2 "%s: %s\n" "$0" "ignoring unhandled arg: $arg"
       ;;
@@ -31,4 +35,4 @@ do
 done
 
 env > "/out/debug.env.$(hostname).log"
-/vagrant/vscripts/deps.py > "/out/debug.$(hostname).log"
+/vagrant/vscripts/deps.py | tee "/out/debug.$(hostname).log"

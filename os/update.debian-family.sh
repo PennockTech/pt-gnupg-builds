@@ -65,7 +65,7 @@ echo "$0: OS-agnostic package installer wrapper"
 mkdir -pv /usr/local/bin
 cat > /usr/local/bin/pt-build-pkg-install <<'EOBPI'
 #!/bin/sh
-exec sudo dpki -i "$@"
+exec sudo dpkg -i "$@"
 EOBPI
 chmod 755 /usr/local/bin/pt-build-pkg-install
 

@@ -91,6 +91,12 @@ Vagrant.configure("2") do |config|
           rsync__args: ["--verbose", "--archive", "--checksum", "--whole-file", "--exclude=*.log"],
           rsync__auto: false
       end
+      # XXX: synced folders are all done before shell steps, depsite order
+      # here, and /out is created in a shell step and chowned to the correct user, and the above
+      # is done with no sudo ... so probably should not have worked.
+      #
+      # I'm guessing that there's some synced_folder rsync framework which
+      # pre-creates the directory so that things worked anyway?
 
       node.vm.provision "shell", path: "vscripts/user.presetup.sh", privileged: false, name: "user-presetup"
 

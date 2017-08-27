@@ -29,6 +29,10 @@ export PKG_VERSIONEXT='suf'
 
 I use a Pennock Tech email address and `pt` for `PKG_VERSIONEXT`.
 
+You will almost certainly want to change values in `confs/deploy.sh`; if you
+instead export `PT_SKIP_DEPLOY=true` in environ before building, then you can
+build packages without trying to put them live on the repo server.
+
 ```console
 % vagrant status
 ## see list of machines, typically named for OS

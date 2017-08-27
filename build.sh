@@ -17,7 +17,8 @@ build_one() {
   fi
   set -x
   if [[ -z "${PT_MACHINE_MUST_EXIST:-}" ]]; then
-    vagrant up "$machine"
+    vagrant up --provision "$machine"
+    # alas, that does not exit non-zero if the build fails.  :^(
   fi
   mkdir -pv "$outputs"
   vagrant ssh-config "$machine" > "$sshconf"

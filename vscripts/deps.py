@@ -209,18 +209,29 @@ class BuildPlan(object):
       # Also: figure out how to keep those pkgvers in sync across N OSes, if doing that way.
       pkgpath = self._pkg_generated_pathname(self.products[product_name])
       if os.path.exists(pkgpath):
-        print('\033[36mAlready have: \033[1m{}\033[0m\033[36;3m{}\033[0m'.format(product_name, pkgpath))
+        print('\033[36mAlready have: \033[1m{}\033[0m  \033[36;3m{}\033[0m'.format(product_name, pkgpath))
+        self.install_package(self.products[product_name], pkgpath)
         continue
+      print('\033[36mExpecting to create: \033[3m{}\033[0m'.format(pkgpath))
       self.build_one(product_name)
 
   def _normalize_list(self, items):
     return list(map(lambda s: s.replace('#{prefix}', self.configures['prefix']), items))
 
+  def _some_file_for_stage(self, product, stage, prefix):
+    return os.path.join(
+        os.path.expanduser(self.options.base_dir),
+        '.{prefix}.{p.name}.{stage}'.format(p=product, stage=stage, prefix=prefix))
+
   def _flagfile_for_stage(self, product, stage):
     # _could_ use inspect module to auto-determine stage, but prefer slightly less magic
-    return os.path.join(
-      os.path.expanduser(self.options.base_dir),
-      '.done.{p.name}.{stage}'.format(p=product, stage=stage))
+    return self._some_file_for_stage(product, stage, 'done')
+
+  def _stdout_for_stage(self, product, stage):
+    return self._some_file_for_stage(product, stage, 'stdout')
+
+  def _stderr_for_stage(self, product, stage):
+    return self._some_file_for_stage(product, stage, 'stderr')
 
   def _record_done_stage(self, product, stage, content=None):
     with open(self._flagfile_for_stage(product, stage), 'w') as fh:
@@ -287,9 +298,11 @@ class BuildPlan(object):
           del newenv[k]
       except ValueError:
         del newenv[e]
-    subprocess.check_call(['./configure'] + params,
-        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'),
-        env=newenv)
+    with open(self._stdout_for_stage(product, STAGENAME), 'wb') as stdout:
+      with open(self._stderr_for_stage(product, STAGENAME), 'wb') as stderr:
+        subprocess.check_call(['./configure'] + params,
+            stdout=stdout, stderr=stderr, stdin=open(os.devnull, 'r'),
+            env=newenv)
     self._record_done_stage(product, STAGENAME)
 
   def install_temptree(self, product):
@@ -303,8 +316,10 @@ class BuildPlan(object):
     tree = tempfile.mkdtemp(prefix=pattern)
     # We deliberately never delete the tree;
     # leave the installs around until VM destruction.
-    subprocess.check_call(['make', 'install', 'DESTDIR='+tree],
-        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+    with open(self._stdout_for_stage(product, STAGENAME), 'wb') as stdout:
+      with open(self._stderr_for_stage(product, STAGENAME), 'wb') as stderr:
+        subprocess.check_call(['make', 'install', 'DESTDIR='+tree],
+            stdout=stdout, stderr=stderr, stdin=open(os.devnull, 'r'))
     self._record_done_stage(product, STAGENAME, content=tree)
     return tree
 
@@ -314,7 +329,7 @@ class BuildPlan(object):
       self._print_already(STAGENAME)
       return
     fixup_list = list(map(lambda s: s.replace('#{temp_tree}', temp_tree),
-      self._normalize_list(self.configures['packages'][product_name].get('fixups', []))))
+      self._normalize_list(self.configures['packages'][product.name].get('fixups', []))))
     for fixup in fixup_list:
       subprocess.check_call(fixup, shell=True,
           stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
@@ -322,8 +337,9 @@ class BuildPlan(object):
 
   def _pkg_full_version(self, product):
     overrides = self.other_versions['overrides'].get(product.name, {})
-    pkgver = overrides.get('pkg_version', '1').to_s
-    return "#{product.ver}-#{self.options.pkg_version_ext}#{pkgver}"
+    pkgver = str(overrides.get('pkg_version', '1'))  # protect against `3` where expected `"3"`
+    return '{p.ver}-{opts.pkg_version_ext}{pkgver}'.format(
+        p=product, opts=self.options, pkgver=pkgver)
 
   def _pkg_generated_pathname(self, product):
     # This depends upon the -p option to `fpm` in .package(), but fpm does interpolation.
@@ -358,7 +374,7 @@ class BuildPlan(object):
     cmdline.append(os.path.normpath(self.configures['prefix']).lstrip(os.path.sep).split(os.path.sep)[0]) # aka: 'opt'
     subprocess.check_call(cmdline,
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
-    pkgname = _pkg_generated_pathname(product)
+    pkgname = self._pkg_generated_pathname(product)
     self._record_done_stage(product, STAGENAME, content=pkgname)
     return pkgname
 
@@ -397,7 +413,7 @@ def _main(args, argv0):
   parser.add_argument('--configures-file',
                       type=str, default=CONFIGURES_FN,
                       help='Filename of configure instructions [%(default)s]')
-  parser.add_argument('--pkg-install-cmd'
+  parser.add_argument('--pkg-install-cmd',
                       type=str, default=PKG_INSTALL_CMD,
                       help='Command to install a package [%(default)s]')
   parser.add_argument('--mirror',
