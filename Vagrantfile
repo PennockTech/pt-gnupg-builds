@@ -24,6 +24,11 @@ asset_indir = ENV["PT_GNUPG_IN"] || "./in"
 # Canonical would be: https://www.gnupg.org/ftp/gcrypt/
 download_mirror = ENV["PT_GNUPG_DOWNLOAD_MIRROR"] || "https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/"
 
+vbuild_args = ["MIRROR=#{download_mirror}"]
+ENV.select {|k,v| k.start_with?('PKG_')}.each do |k,v|
+  vbuild_args << "#{k}=#{v}"
+end
+
 Vagrant.configure("2") do |config|
   # In each machine, this directory is exposed as /vagrant, read-write
   # On _some_ OSes, writes propagate back to us.
@@ -40,6 +45,9 @@ Vagrant.configure("2") do |config|
   end
 
   PTMACHINES.each do |ptb|
+    # contents synced _back_ via build script, but should also sync outwards to enable cached re-use
+    generated_assets_dir = "./out/#{ptb.name}"
+
     config.vm.define ptb.name, autostart: false do |node|
       node.vm.box = ptb.box
 
@@ -76,13 +84,21 @@ Vagrant.configure("2") do |config|
         end
       end
 
+      # directory made in OS update and chowned to normal user, do not need/want sudo
+      # but don't want to copy any logfiles in
+      if File.exists?(generated_assets_dir)
+        config.vm.synced_folder "#{generated_assets_dir}/", "/out", create: false, type: "rsync",
+          rsync__args: ["--verbose", "--archive", "--checksum", "--whole-file", "--exclude=*.log"],
+          rsync__auto: false
+      end
+
       node.vm.provision "shell", path: "vscripts/user.presetup.sh", privileged: false, name: "user-presetup"
 
       node.vm.provision "shell" do |s|
         s.name = "build"
         s.path = "vscripts/build.sh"
         s.privileged = false
-        s.args = ["MIRROR=#{download_mirror}"]
+        s.args = vbuild_args
       end
     end
   end

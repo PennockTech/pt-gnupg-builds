@@ -2,3 +2,4 @@
 /in/
 /out/
 /tmp.ssh-config.*
+/site-local.env

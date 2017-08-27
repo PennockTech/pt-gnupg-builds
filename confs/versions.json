@@ -5,5 +5,8 @@
     "nettle": { "version": "3.3", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
     "gnutls": { "version": "3.5.10", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/" }
   },
+  "overrides": {
+    "gnupg21": { "pkg_version": "2" }
+  },
   "_final": "vim: set ft=json sw=2 :"
 }

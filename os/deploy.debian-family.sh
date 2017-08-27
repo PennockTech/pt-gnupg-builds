@@ -32,11 +32,6 @@ note "debs found: ${debs[*]}"
 repo="$(machine_get repo)" || skipme_die "no repo defined"
 repo_endpoints=( $(machine_get repo_endpoints '[]' || echo 'none') )
 
-#note "REPO_NAME=$REPO_NAME"
-#note "SSH_USERHOST=$SSH_USERHOST"
-#note "REPO_INGEST_DIR=$REPO_INGEST_DIR"
-#note "REPO_SNAP_PREFIX=$REPO_SNAP_PREFIX"
-
 # None of the quoting here protects against single-quotes in the package names;
 # we accept this threat, on basis that those _shouldn't_ have made it this far.
 # In fact, the aptly invocation will not protect against whitespace either.

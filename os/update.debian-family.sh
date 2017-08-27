@@ -61,6 +61,14 @@ gem install --no-ri --no-rdoc fpm
 echo "$0: pip install requests"
 pip install requests
 
+echo "$0: OS-agnostic package installer wrapper"
+mkdir -pv /usr/local/bin
+cat > /usr/local/bin/pt-build-pkg-install <<'EOBPI'
+#!/bin/sh
+exec sudo dpki -i "$@"
+EOBPI
+chmod 755 /usr/local/bin/pt-build-pkg-install
+
 # -----------------------------8< cut here >8-----------------------------
 # If we ever have non-debian stuff, we'll probably want to move stuff after
 # here out to a separate root-run setup stage.

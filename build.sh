@@ -29,6 +29,40 @@ build_one() {
   set +x
 }
 
+deploy_one() {
+  local -r machine="${1:-need a machine name}"
+  if [[ -n "${PT_SKIP_DEPLOY:-}" ]]; then
+    note "[$machine] skipping deploy-to-reposerver because PT_SKIP_DEPLOY set"
+    return 0
+  fi
+
+  bs="$(jq -r --arg m "$machine" < confs/machines.json '.[]|select(.name==$m).base_script')"
+  deploy="./os/deploy.${bs:-default}.sh"
+
+  if [[ ! -f "$deploy" ]]; then
+    note >&2 "[$machine] no deploy script (wanted: '${deploy}')"
+    return
+  fi
+
+  set +e
+  "$deploy" "$machine"
+  ev=$?
+  set -e
+
+  case $ev in
+    0) ;;
+    3) note >&2 "[$machine] deploy failed but indicated non-fatal" ;;
+    *) note >&2 "[$machine] deploy failed exiting $ev"; exit $ev ;;
+  esac
+}
+
+if [[ -f site-local.env ]]; then
+  # shellcheck disable=SC1091
+  . ./site-local.env
+else
+  note "missing file site-local.env; see README, might be badly tuned"
+fi
+
 if [[ $# -eq 0 ]]; then
   printf "%s: %s" "${progname}" "available boxes: "
   jq -r < confs/machines.json '.[].name' | xargs
@@ -42,19 +76,6 @@ done
 
 for machine
 do
-  bs="$(jq -r --arg m "$machine" < confs/machines.json '.[]|select(.name==$m).base_script')"
-  deploy="./os/deploy.${bs:-default}.sh"
-  if [[ -f "$deploy" ]]; then
-    set +e
-    "$deploy" "$machine"
-    ev=$?
-    set -e
-    case $ev in
-      0) ;;
-      3) note >&2 "[$machine] deploy failed but indicated non-fatal" ;;
-      *) note >&2 "[$machine] deploy failed exiting $ev"; exit $ev ;;
-    esac
-  else
-    note >&2 "[$machine] no deploy script (wanted: '${deploy}')"
-  fi
+  deploy_one "$machine"
 done
+

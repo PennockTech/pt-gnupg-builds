@@ -16,7 +16,18 @@ install into that prefix.  This includes other major projects such as GnuTLS.
 Building
 --------
 
-We're using Vagrant to build packages.  Details TBD.
+We're using Vagrant to build packages.
+
+First create `site-local.env`; things will work without it, but you might not
+like some details embedded in packages and their names.  It should look
+something like:
+
+```
+export PKG_EMAIL='maintainer@example.org'
+export PKG_VERSIONEXT='suf'
+```
+
+I use a Pennock Tech email address and `pt` for `PKG_VERSIONEXT`.
 
 ```console
 % vagrant status

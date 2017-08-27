@@ -31,10 +31,10 @@ PATCHES_DIR = '/vagrant/patches'
 VERSIONS_FN = '/vagrant/confs/versions.json'
 CONFIGURES_FN = '/vagrant/confs/configures.json'
 MIRROR_URL = 'https://www.gnupg.org/ftp/gcrypt/'
-PKG_EMAIL = 'pdp@pennock-tech.com' # FIXME before even think about going public
+PKG_EMAIL = 'unknown@localhost'
 PKG_PREFIX = 'optgnupg'
-PKG_VERSIONEXT = 'pdp'  # FIXME
-INSTALL_CMD = ['sudo', 'dpkg', '-i'] # FIXME
+PKG_VERSIONEXT = 'unknown'
+PKG_INSTALL_CMD = '/usr/local/bin/pt-build-pkg-install'  # wrapper: sudo dpkg -i (or equivalent per OS)
 
 class Error(Exception):
   """Base class for exceptions from build."""
@@ -130,6 +130,8 @@ class BuildPlan(object):
     self.other_versions = json.load(open(vfn))
     if 'products' not in self.other_versions:
       raise Error('Missing key "products" in {!r}'.format(vfn))
+    if 'overrides' not in self.other_versions:
+      self.other_versions['overrides'] = {}
 
   def process_configures(self, cfn=None):
     if cfn is None:
@@ -199,7 +201,16 @@ class BuildPlan(object):
 
   def build_each(self):
     for product_name in self.ordered:
-      print('FIXME: check for existing package at right patch-level')
+      # TODO: use the repo spec to check an existing repo server's contents
+      # instead of requiring the pkg be present on local FS
+      # install that if not depending upon something we've had to recompile,
+      # else if it exists but we have had to recompile a dep then auto-bump the
+      # pkgver suffix and build anyway.
+      # Also: figure out how to keep those pkgvers in sync across N OSes, if doing that way.
+      pkgpath = self._pkg_generated_pathname(self.products[product_name])
+      if os.path.exists(pkgpath):
+        print('\033[36mAlready have: \033[1m{}\033[0m\033[36;3m{}\033[0m'.format(product_name, pkgpath))
+        continue
       self.build_one(product_name)
 
   def _normalize_list(self, items):
@@ -241,6 +252,7 @@ class BuildPlan(object):
       self.patch(product)
       self.run_configure(product, params, envs)
       tmp = self.install_temptree(product)
+      self.prepackage_fixup(product, tmp)
       pkg_path = self.package(product, tmp)
       self.install_package(product, pkg_path) # need for later packages to build
     finally:
@@ -296,6 +308,30 @@ class BuildPlan(object):
     self._record_done_stage(product, STAGENAME, content=tree)
     return tree
 
+  def prepackage_fixup(self, product, temp_tree):
+    STAGENAME = 'prepackage-fixup'
+    if self._have_done_stage(product, STAGENAME):
+      self._print_already(STAGENAME)
+      return
+    fixup_list = list(map(lambda s: s.replace('#{temp_tree}', temp_tree),
+      self._normalize_list(self.configures['packages'][product_name].get('fixups', []))))
+    for fixup in fixup_list:
+      subprocess.check_call(fixup, shell=True,
+          stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+    self._record_done_stage(product, STAGENAME)
+
+  def _pkg_full_version(self, product):
+    overrides = self.other_versions['overrides'].get(product.name, {})
+    pkgver = overrides.get('pkg_version', '1').to_s
+    return "#{product.ver}-#{self.options.pkg_version_ext}#{pkgver}"
+
+  def _pkg_generated_pathname(self, product):
+    # This depends upon the -p option to `fpm` in .package(), but fpm does interpolation.
+    # FIXME: _amd_64.deb hardcoded:
+    return os.path.join(self.options.results_dir,
+      self.options.pkg_prefix + '-' + product.filename_base + '_' + self._pkg_full_version(product) + '_amd64.deb'
+      )
+
   def package(self, product, temp_tree):
     STAGENAME = 'package'
     already = self._have_done_stage(product, STAGENAME, want_content=True)
@@ -304,7 +340,7 @@ class BuildPlan(object):
       return already[0]
     with open('.rbenv-gemsets', 'w') as f:
       print('fpm', file=f)
-    full_version = product.ver + '-' + self.options.pkg_version_ext + '1'  # FIXME handle counter bumps
+    full_version = self._pkg_full_version(product)
     cmdline = [
       'fpm',
       '-s', 'dir',
@@ -322,9 +358,7 @@ class BuildPlan(object):
     cmdline.append(os.path.normpath(self.configures['prefix']).lstrip(os.path.sep).split(os.path.sep)[0]) # aka: 'opt'
     subprocess.check_call(cmdline,
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
-    pkgname = os.path.join(self.options.results_dir,
-      self.options.pkg_prefix + '-' + product.filename_base + '_' + full_version + '_amd64.deb'  # FIXME
-      )
+    pkgname = _pkg_generated_pathname(product)
     self._record_done_stage(product, STAGENAME, content=pkgname)
     return pkgname
 
@@ -333,7 +367,7 @@ class BuildPlan(object):
     if self._have_done_stage(product, STAGENAME):
       self._print_already(STAGENAME)
       return
-    subprocess.check_call(INSTALL_CMD + [pkgpath],
+    subprocess.check_call([PKG_INSTALL_CMD, pkgpath],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
     self._record_done_stage(product, STAGENAME)
 
@@ -363,6 +397,9 @@ def _main(args, argv0):
   parser.add_argument('--configures-file',
                       type=str, default=CONFIGURES_FN,
                       help='Filename of configure instructions [%(default)s]')
+  parser.add_argument('--pkg-install-cmd'
+                      type=str, default=PKG_INSTALL_CMD,
+                      help='Command to install a package [%(default)s]')
   parser.add_argument('--mirror',
                       type=str, default=os.environ.get('MIRROR', MIRROR_URL),
                       help='GnuPG download mirror [%(default)s]')
@@ -370,13 +407,13 @@ def _main(args, argv0):
                       type=str, default=os.environ.get('PACKAGES_OUT_DIR', RESULTS_DIR),
                       help='Where built packages are dropped')
   parser.add_argument('--pkg-email',
-                      type=str, default=PKG_EMAIL,
+                      type=str, default=os.environ.get('PKG_EMAIL', PKG_EMAIL),
                       help='Email for packages [%(default)s]')
   parser.add_argument('--pkg-prefix',
-                      type=str, default=PKG_PREFIX,
+                      type=str, default=os.environ.get('PKG_PREFIX', PKG_PREFIX),
                       help='Prefix for packages [%(default)s]')
   parser.add_argument('--pkg-version-ext',
-                      type=str, default=PKG_VERSIONEXT,
+                      type=str, default=os.environ.get('PKG_VERSIONEXT', PKG_VERSIONEXT),
                       help='Version suffix base for packages [%(default)s]')
   options = parser.parse_args(args=args)
 
