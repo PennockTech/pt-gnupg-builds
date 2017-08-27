@@ -1,0 +1,89 @@
+{
+  "prefix": "#{prefix}",
+  "common_params": [
+    "--prefix=#{prefix}"
+  ],
+  "packages": {
+    "gmp": {},
+    "nettle": {
+      "params": [
+        "--with-lib-path=#{prefix}/lib",
+        "--with-include-path=#{prefix}/include"
+      ]
+    },
+    "gnutls": {
+      "env": [
+        "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig",
+        "GMP_CFLAGS=-I#{prefix}/include",
+        "GMP_LIBS=-L#{prefix}/lib",
+        "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
+      ],
+      "params": [
+        "--disable-nls",
+        "--with-included-libtasn1",
+        "--without-p11-kit"
+      ]
+    },
+    "npth": {
+      "params": [
+        "--enable-static"
+      ]
+    },
+    "libgpg-error": {
+      "params": [
+        "--enable-static",
+        "--with-libgpg-error-prefix=#{prefix}"
+      ]
+    },
+    "libksba": {
+      "env": [
+        "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
+      ],
+      "params": [
+        "--enable-static",
+        "--with-libgpg-error-prefix=#{prefix}"
+      ]
+    },
+    "libassuan": {
+      "env": [
+        "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
+      ],
+      "params": [
+        "--enable-static",
+        "--with-libgpg-error-prefix=#{prefix}"
+      ]
+    },
+    "pinentry": {
+      "env": [
+        "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
+      ],
+      "params": [
+        "--enable-static",
+        "--with-libgpg-error-prefix=#{prefix}",
+        "--with-libassuan-prefix=#{prefix}",
+        "--enable-pinentry-curses",
+        "--enable-pinentry-tty"
+      ]
+    },
+    "gnupg21": {
+      "comment": "TODO: what happened to the installed cmdname again?",
+      "env": [
+        "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig",
+        "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
+      ],
+      "params": [
+        "--disable-nls",
+        "--disable-ldap",
+        "--enable-noexecstack",
+        "--enable-key-cache=16384",
+        "--enable-wks-tools",
+        "--with-pinentry-pgm=#{prefix}/bin/pinentry-curses",
+        "--with-libgpg-error-prefix=#{prefix}",
+        "--with-libassuan-prefix=#{prefix}",
+        "--with-libgcrypt-prefix=#{prefix}",
+        "--with-ksba-prefix=#{prefix}",
+        "--with-npth-prefix=#{prefix}"
+      ]
+    }
+  }
+}
