@@ -1,5 +1,5 @@
 {
-  "prefix": "#{prefix}",
+  "prefix": "/opt/gnupg",
   "common_params": [
     "--prefix=#{prefix}"
   ],
@@ -39,6 +39,12 @@
       "env": [
         "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
       ],
+      "params": [
+        "--enable-static",
+        "--with-libgpg-error-prefix=#{prefix}"
+      ]
+    },
+    "libgcrypt": {
       "params": [
         "--enable-static",
         "--with-libgpg-error-prefix=#{prefix}"

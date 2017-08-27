@@ -25,6 +25,7 @@ DEPENDENCIES_FN = '/vagrant/dependencies.tsort-in'
 SWDB_FN = './swdb.lst'
 TARBALLS_DIR = '/in'
 VERSIONS_FN = '/vagrant/versions.json'
+CONFIGURES_FN = '/vagrant/configures.json'
 MIRROR_URL = 'https://www.gnupg.org/ftp/gcrypt/'
 
 class Error(Exception):
@@ -119,6 +120,13 @@ class BuildPlan(object):
     if 'products' not in self.other_versions:
       raise Error('Missing key "products" in {!r}'.format(vfn))
 
+  def process_configures(self, cfn=None):
+    if cfn is None:
+      cfn = self.options.configures_file
+    self.configures = json.load(open(cfn))
+    if 'prefix' not in self.configures:
+      raise Error('Missing key "prefix" in {!r}'.format(cfn))
+
   def ensure_have_each(self, tardir=None):
     if tardir is None:
       tardir = self.options.tarballs_dir
@@ -166,6 +174,28 @@ class BuildPlan(object):
       for chunk in r.iter_content(chunk_size=4096):
         fd.write(chunk)
 
+  def build_each(self):
+    for product in self.ordered:
+      print('FIXME: check for existing package at right patch-level')
+      self.build_one(product)
+
+  def _normalize_list(self, items):
+    return list(map(lambda s: s.replace('#{prefix}', self.configures['prefix']), items))
+
+  def build_one(self, product):
+    if product not in self.configures['packages']:
+      raise Error('missing configure information for {!r}'.format(product))
+    params = self._normalize_list(self.configures['common_params'] + self.configures['packages'][product].get('params', []))
+    envs = self._normalize_list(self.configures['packages'][product].get('env', []))
+    print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product))
+    print('FIXME: something something untar and cd')
+    print('something patch each patch')
+    for e in envs:
+      print(e)
+    print(['./configure'] + params)
+    print('tmp_install blah')
+    print('fpm blah')
+
 def _main(args, argv0):
   parser = argparse.ArgumentParser(
       description=__doc__,
@@ -185,6 +215,9 @@ def _main(args, argv0):
   parser.add_argument('--versions-file',
                       type=str, default=VERSIONS_FN,
                       help='Filename of version config for 3rd-party sw [%(default)s]')
+  parser.add_argument('--configures-file',
+                      type=str, default=CONFIGURES_FN,
+                      help='Filename of configure instructions [%(default)s]')
   parser.add_argument('--mirror',
                       type=str, default=os.environ.get('MIRROR', MIRROR_URL),
                       help='GnuPG download mirror [%(default)s]')
@@ -199,8 +232,11 @@ def _main(args, argv0):
   plan = BuildPlan(options)
   plan.process_swdb()
   plan.process_versions_conf()
+  plan.process_configures()
 
   plan.ensure_have_each()
+  print('FIXME: load in patch-levels, load in per-product patch paths!')
+  plan.build_each()
 
   #json.dump(plan.products, fp=sys.stdout, indent=2, cls=OurJSONEncoder)
   #print()
