@@ -47,8 +47,9 @@ esac
 # Be careful to not include here
 pt_apt_get build-dep gnupg2 pinentry
 pt_apt_get install libsqlite3-dev libncurses5-dev lzip jq xz-utils
-# ruby-dev for fpm; python-pip for our build scripts
-pt_apt_get install ruby ruby-dev python3 git curl python-pip
+# ruby-dev for fpm;
+# python-pip for our build scripts; probably xenial?  trusty wants python3-pip
+pt_apt_get install ruby ruby-dev python3 git curl python-pip python3-pip
 
 # Ideally we'd not use root for fpm/ruby but it's a short-lived OS image.
 # Doing this as the user is "not sane", alas.  Could use rbenv etc, but

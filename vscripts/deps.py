@@ -16,6 +16,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 
 import requests
 
@@ -24,9 +25,15 @@ BASE_DIR = '~/src'
 DEPENDENCIES_FN = '/vagrant/confs/dependencies.tsort-in'
 SWDB_FN = './swdb.lst'
 TARBALLS_DIR = '/in'
+RESULTS_DIR = '/out'
+PATCHES_DIR = '/vagrant/patches'
 VERSIONS_FN = '/vagrant/confs/versions.json'
 CONFIGURES_FN = '/vagrant/confs/configures.json'
 MIRROR_URL = 'https://www.gnupg.org/ftp/gcrypt/'
+PKG_EMAIL = 'pdp@pennock-tech.com' # FIXME before even think about going public
+PKG_PREFIX = 'optgnupg'
+PKG_VERSIONEXT = 'pdp'  # FIXME
+INSTALL_CMD = ['sudo', 'dpkg', '-i'] # FIXME
 
 class Error(Exception):
   """Base class for exceptions from build."""
@@ -36,7 +43,7 @@ class Error(Exception):
 class Product(object):
   __slots__ = [
       'name', 'ver', 'date', 'size', 'sha1', 'sha2', 'branch', 'sha1_gz',
-      'product', 'filename_base',
+      'product', 'filename_base', 'dirname', 'tarball', 'third_party',
       ]
   def as_dict(self):
     """as_dict returns a dict clone of the Product, for JSON serialization."""
@@ -66,12 +73,14 @@ class BuildPlan(object):
     self.ordered = list(map(lambda s: s.strip(), p.stdout.readlines()))
 
     self.needs = collections.defaultdict(set)
+    self.direct_needs = {}
     for l in open(fn):
       before, after = l.strip().split()
       if before == after:
         continue
       self.needs[after].add(before)
     for k in self.ordered:
+      self.direct_needs[k] = sorted(self.needs[k])
       for dep in list(self.needs[k]):
         self.needs[k].update(self.needs[dep])
 
@@ -104,6 +113,7 @@ class BuildPlan(object):
         p.filename_base = p.name
         if p.name.startswith('gnupg2'):
           p.filename_base = 'gnupg'
+        p.third_party = False
       setattr(p, attr, value)
     if p is not None:
       self.product_list.append(p)
@@ -142,7 +152,10 @@ class BuildPlan(object):
     dl_src = '{o.mirror}{slash}{p.filename_base}/{fn}'.format(
         o=self.options, p=product, fn=fn,
         slash = '' if self.options.mirror.endswith('/') else '/')
+
     self.check_and_download(product.name, want_path, dl_src)
+    self.products[product.name].tarball = want_path
+    self.products[product.name].dirname = '{0.filename_base}-{0.ver}'.format(product)
 
   def check_and_download(self, name, want_path, dl_src):
     print('\033[36m{}\033[0m'.format(name))
@@ -165,9 +178,18 @@ class BuildPlan(object):
     dl_src = '{other[urlbase]}{slash}{fn}'.format(
         other=other, fn=fn,
         slash = '' if other['urlbase'].endswith('/') else '/')
+
     self.check_and_download(product, want_path, dl_src)
+    p = Product()
+    p.third_party = True
+    p.name = p.filename_base = p.product = product
+    p.ver = other['version']
+    p.tarball = want_path
+    p.dirname = other.get('dirname', '{p}-{other[version]}'.format(p=product, other=other))
+    self.products[product] = p
 
   def fetch_file(self, url, outpath):
+    print('Fetching <{}>'.format(url))
     r = requests.get(url, stream=True)
     r.raise_for_status()
     with open(outpath, 'wb') as fd:
@@ -175,26 +197,94 @@ class BuildPlan(object):
         fd.write(chunk)
 
   def build_each(self):
-    for product in self.ordered:
+    for product_name in self.ordered:
       print('FIXME: check for existing package at right patch-level')
-      self.build_one(product)
+      self.build_one(product_name)
 
   def _normalize_list(self, items):
     return list(map(lambda s: s.replace('#{prefix}', self.configures['prefix']), items))
 
-  def build_one(self, product):
-    if product not in self.configures['packages']:
-      raise Error('missing configure information for {!r}'.format(product))
-    params = self._normalize_list(self.configures['common_params'] + self.configures['packages'][product].get('params', []))
-    envs = self._normalize_list(self.configures['packages'][product].get('env', []))
-    print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product))
-    print('FIXME: something something untar and cd')
-    print('something patch each patch')
+  def build_one(self, product_name):
+    if product_name not in self.configures['packages']:
+      raise Error('missing configure information for {!r}'.format(product_name))
+    params = self._normalize_list(self.configures['common_params'] + self.configures['packages'][product_name].get('params', []))
+    envs = self._normalize_list(self.configures['packages'][product_name].get('env', []))
+    print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product_name))
+    product = self.products[product_name]
+    self.untar(product.tarball, product.dirname)
+    try:
+      os.chdir(product.dirname)
+      self.patch(product)
+      self.run_configure(product, params, envs)
+      tmp = self.install_temptree(product)
+      pkg_path = self.package(product, tmp)
+      self.install_package(pkg_path) # need for later packages to build
+    finally:
+      os.chdir(os.path.expanduser(options.base_dir))
+
+  def untar(self, tarball, expected_dirname):
+    subprocess.check_call(['tar', '-xf', tarball],
+        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+    if not os.path.isdir(expected_dirname):
+      raise Error('Missing expected dir {!r} from {!r}'.format(expected_dirname, tarball))
+
+  def patch(self, product):
+    print('warning: patching unimplemented so far (YAGNI until you do)', file=sys.stderr)
+
+  def run_configure(self, product, params, envs):
+    newenv = os.environ.copy()
     for e in envs:
-      print(e)
-    print(['./configure'] + params)
-    print('tmp_install blah')
-    print('fpm blah')
+      try:
+        k, v = e.split('=', 1)
+        if v:
+          newenv[k] = v
+        else:
+          del newenv[k]
+      except ValueError:
+        del newenv[e]
+    subprocess.check_call(['./configure'] + params,
+        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'),
+        env=newenv)
+
+  def install_temptree(self, product):
+    """Returns the tree where the content is."""
+    pattern = 'pkgbuild.{}.'.format(product.filename_base)
+    tree = tempfile.mkdtemp(prefix=pattern)
+    # We deliberately never delete the tree;
+    # leave the installs around until VM destruction.
+    subprocess.check_call(['make', 'install', 'DESTDIR='+tree],
+        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+    return tree
+
+  def package(self, product, temp_tree):
+    with open('.rbenv-gemsets', 'w') as f:
+      print('fpm', file=f)
+    full_version = product.ver + '-' + self.options.pkg_version_ext + '1'  # FIXME handle counter bumps
+    cmdline = [
+      'fpm',
+      '-s', 'dir',
+      '-t', 'deb', # FIXME when not debs
+      '-m', self.options.pkg_email,
+      '-p', os.path.join(self.options.results_dir, 'NAME_FULLVERSION_ARCH.EXTENSION'),
+      '-C', temp_tree,
+      '-x', os.path.join(self.configures['prefix'].lstrip(os.path.sep), 'share', 'info', 'dir'),
+      '-n', self.options.pkg_prefix + '_' + product.filename_base,
+      '-v', full_version,
+      ]
+    for depname in self.direct_needs[product.name]:
+      cmdline.append('-d')
+      cmdline.append(self.options.pkg_prefix + '_' + depname)
+    cmdline.append(os.path.normpath(self.configures['prefix']).lstrip(os.path.sep).split(os.path.sep)[0]) # aka: 'opt'
+    subprocess.check_call(cmdline,
+        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+    return os.path.join(self.options.results_dir,
+      self.options.pkg_prefix + '-' + product.filename_base + '_' + full_version + '_amd64.deb'  # FIXME
+      )
+
+  def install_package(self, pkgpath):
+    subprocess.check_call(INSTALL_CMD + [pkgpath],
+        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+
 
 def _main(args, argv0):
   parser = argparse.ArgumentParser(
@@ -212,6 +302,9 @@ def _main(args, argv0):
   parser.add_argument('--tarballs-dir',
                       type=str, default=TARBALLS_DIR,
                       help='Where tarballs might be and will be cached (r/w) [%(default)s]')
+  parser.add_argument('--patches-dir',
+                      type=str, default=PATCHES_DIR,
+                      help='Where patches can be found [%(default)s]')
   parser.add_argument('--versions-file',
                       type=str, default=VERSIONS_FN,
                       help='Filename of version config for 3rd-party sw [%(default)s]')
@@ -221,9 +314,18 @@ def _main(args, argv0):
   parser.add_argument('--mirror',
                       type=str, default=os.environ.get('MIRROR', MIRROR_URL),
                       help='GnuPG download mirror [%(default)s]')
-  parser.add_argument('-v', '--verbose',
-                      action='count', default=0,
-                      help='Be more verbose')
+  parser.add_argument('--results-dir',
+                      type=str, default=os.environ.get('PACKAGES_OUT_DIR', RESULTS_DIR),
+                      help='Where built packages are dropped')
+  parser.add_argument('--pkg-email',
+                      type=str, default=PKG_EMAIL,
+                      help='Email for packages [%(default)s]')
+  parser.add_argument('--pkg-prefix',
+                      type=str, default=PKG_PREFIX,
+                      help='Prefix for packages [%(default)s]')
+  parser.add_argument('--pkg-version-ext',
+                      type=str, default=PKG_VERSIONEXT,
+                      help='Version suffix base for packages [%(default)s]')
   options = parser.parse_args(args=args)
 
   # will double-expand `~` if the shell already did that; acceptable.
