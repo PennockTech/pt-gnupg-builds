@@ -12,6 +12,7 @@ __author__ = 'phil@pennock-tech.com (Phil Pennock)'
 
 import argparse
 import collections
+import datetime
 import json
 import os
 import subprocess
@@ -204,6 +205,29 @@ class BuildPlan(object):
   def _normalize_list(self, items):
     return list(map(lambda s: s.replace('#{prefix}', self.configures['prefix']), items))
 
+  def _flagfile_for_stage(self, product, stage):
+    # _could_ use inspect module to auto-determine stage, but prefer slightly less magic
+    return os.path.join(
+      os.path.expanduser(self.options.base_dir),
+      '.done.{p.name}.{stage}'.format(p=product, stage=stage))
+
+  def _record_done_stage(self, product, stage, content=None):
+    with open(self._flagfile_for_stage(product, stage), 'w') as fh:
+      if content is None:
+        content = datetime.datetime.now().isoformat()
+      print(content, file=fh)
+
+  def _have_done_stage(self, product, stage, want_content=False):
+    if not want_content:
+      return os.path.exists(self._flagfile_for_stage(product, stage))
+    try:
+      return list(map(lambda s: s.rstrip(), open(self._flagfile_for_stage(product, stage)).readlines()))
+    except:
+      return None
+
+  def _print_already(self, stagename):
+    print('\033[34mAlready: \033[3m{}\033[0m'.format(stagename))
+
   def build_one(self, product_name):
     if product_name not in self.configures['packages']:
       raise Error('missing configure information for {!r}'.format(product_name))
@@ -211,27 +235,36 @@ class BuildPlan(object):
     envs = self._normalize_list(self.configures['packages'][product_name].get('env', []))
     print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product_name))
     product = self.products[product_name]
-    self.untar(product.tarball, product.dirname)
+    self.untar(product, product.tarball, product.dirname)
     try:
       os.chdir(product.dirname)
       self.patch(product)
       self.run_configure(product, params, envs)
       tmp = self.install_temptree(product)
       pkg_path = self.package(product, tmp)
-      self.install_package(pkg_path) # need for later packages to build
+      self.install_package(product, pkg_path) # need for later packages to build
     finally:
-      os.chdir(os.path.expanduser(options.base_dir))
+      os.chdir(os.path.expanduser(self.options.base_dir))
 
-  def untar(self, tarball, expected_dirname):
+  def untar(self, product, tarball, expected_dirname):
+    STAGENAME = 'untar'
+    if self._have_done_stage(product, STAGENAME):
+      self._print_already(STAGENAME)
+      return
     subprocess.check_call(['tar', '-xf', tarball],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
     if not os.path.isdir(expected_dirname):
       raise Error('Missing expected dir {!r} from {!r}'.format(expected_dirname, tarball))
+    self._record_done_stage(product, STAGENAME)
 
   def patch(self, product):
     print('warning: patching unimplemented so far (YAGNI until you do)', file=sys.stderr)
 
   def run_configure(self, product, params, envs):
+    STAGENAME = 'configure'
+    if self._have_done_stage(product, STAGENAME):
+      self._print_already(STAGENAME)
+      return
     newenv = os.environ.copy()
     for e in envs:
       try:
@@ -245,18 +278,30 @@ class BuildPlan(object):
     subprocess.check_call(['./configure'] + params,
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'),
         env=newenv)
+    self._record_done_stage(product, STAGENAME)
 
   def install_temptree(self, product):
     """Returns the tree where the content is."""
+    STAGENAME = 'tmpinstall'
+    already = self._have_done_stage(product, STAGENAME, want_content=True)
+    if already:
+      self._print_already(STAGENAME)
+      return already[0]
     pattern = 'pkgbuild.{}.'.format(product.filename_base)
     tree = tempfile.mkdtemp(prefix=pattern)
     # We deliberately never delete the tree;
     # leave the installs around until VM destruction.
     subprocess.check_call(['make', 'install', 'DESTDIR='+tree],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+    self._record_done_stage(product, STAGENAME, content=tree)
     return tree
 
   def package(self, product, temp_tree):
+    STAGENAME = 'package'
+    already = self._have_done_stage(product, STAGENAME, want_content=True)
+    if already:
+      self._print_already(STAGENAME)
+      return already[0]
     with open('.rbenv-gemsets', 'w') as f:
       print('fpm', file=f)
     full_version = product.ver + '-' + self.options.pkg_version_ext + '1'  # FIXME handle counter bumps
@@ -277,13 +322,20 @@ class BuildPlan(object):
     cmdline.append(os.path.normpath(self.configures['prefix']).lstrip(os.path.sep).split(os.path.sep)[0]) # aka: 'opt'
     subprocess.check_call(cmdline,
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
-    return os.path.join(self.options.results_dir,
+    pkgname = os.path.join(self.options.results_dir,
       self.options.pkg_prefix + '-' + product.filename_base + '_' + full_version + '_amd64.deb'  # FIXME
       )
+    self._record_done_stage(product, STAGENAME, content=pkgname)
+    return pkgname
 
-  def install_package(self, pkgpath):
+  def install_package(self, product, pkgpath):
+    STAGENAME = 'install_pkg'
+    if self._have_done_stage(product, STAGENAME):
+      self._print_already(STAGENAME)
+      return
     subprocess.check_call(INSTALL_CMD + [pkgpath],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
+    self._record_done_stage(product, STAGENAME)
 
 
 def _main(args, argv0):
