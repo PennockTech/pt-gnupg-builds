@@ -8,7 +8,11 @@
     "name": "trusty",
     "box": "ubuntu/trusty64",
     "base_script": "debian-family",
-    "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main"
+    "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main",
+    "repo_endpoints": [
+      "spodhuis/ubuntu/trusty",
+      "s3:spodhuis-packages:spodhuis/ubuntu/trusty"
+    ]
   },
   {
     "name": "jessie",

@@ -38,11 +38,22 @@ fi
 for machine
 do
   build_one "$machine" "out/$machine"
+done
 
+for machine
+do
   bs="$(jq -r --arg m "$machine" < confs/machines.json '.[]|select(.name==$m).base_script')"
   deploy="./os/deploy.${bs:-default}.sh"
   if [[ -f "$deploy" ]]; then
+    set +e
     "$deploy" "$machine"
+    ev=$?
+    set -e
+    case $ev in
+      0) ;;
+      3) note >&2 "[$machine] deploy failed but indicated non-fatal" ;;
+      *) note >&2 "[$machine] deploy failed exiting $ev"; exit $ev ;;
+    esac
   else
     note >&2 "[$machine] no deploy script (wanted: '${deploy}')"
   fi
