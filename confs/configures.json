@@ -4,7 +4,11 @@
     "--prefix=#{prefix}"
   ],
   "packages": {
-    "gmp": {},
+    "gmp": {
+      "params": [
+        "--enable-fat"
+      ]
+    },
     "nettle": {
       "params": [
         "--with-lib-path=#{prefix}/lib",

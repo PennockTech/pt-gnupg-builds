@@ -75,6 +75,15 @@ do
   build_one "$machine" "out/$machine"
 done
 
+if [[ -z "${PT_SKIP_DEPLOY:-}" && -z "${PT_SKIP_GPGDELAY_PROMPT:-}" ]]; then
+  echo ""
+  echo "Done with any builds, going to copy/deploy packages into repos."
+  echo "This will prompt for a PGP passphrase, if key is so protected."
+  echo "That has a timeout.  So be ready."
+  echo ""
+  read -p 'Hit enter when ready ...' ok
+fi
+
 for machine
 do
   deploy_one "$machine"
