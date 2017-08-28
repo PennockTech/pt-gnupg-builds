@@ -161,7 +161,7 @@ class BuildPlan(object):
     self.products[product.name].dirname = '{0.filename_base}-{0.ver}'.format(product)
 
   def check_and_download(self, name, want_path, dl_src):
-    print('\033[36m{}\033[0m'.format(name))
+    print('\033[36m{}\033[0m'.format(name), flush=True)
     for ext in ('', '.sig'):
       path_name = want_path + ext
       if not os.path.exists(path_name):
@@ -192,7 +192,7 @@ class BuildPlan(object):
     self.products[product] = p
 
   def fetch_file(self, url, outpath):
-    print('Fetching <{}>'.format(url))
+    print('Fetching <{}>'.format(url), flush=True)
     r = requests.get(url, stream=True)
     r.raise_for_status()
     with open(outpath, 'wb') as fd:
@@ -209,10 +209,10 @@ class BuildPlan(object):
       # Also: figure out how to keep those pkgvers in sync across N OSes, if doing that way.
       pkgpath = self._pkg_generated_pathname(self.products[product_name])
       if os.path.exists(pkgpath):
-        print('\033[36mAlready have: \033[1m{}\033[0m  \033[36;3m{}\033[0m'.format(product_name, pkgpath))
+        print('\033[36mAlready have: \033[1m{}\033[0m  \033[36;3m{}\033[0m'.format(product_name, pkgpath), flush=True)
         self.install_package(self.products[product_name], pkgpath)
         continue
-      print('\033[36mExpecting to create: \033[3m{}\033[0m'.format(pkgpath))
+      print('\033[36mExpecting to create: \033[3m{}\033[0m'.format(pkgpath), flush=True)
       self.build_one(product_name)
 
   def _normalize_list(self, items):
@@ -248,14 +248,14 @@ class BuildPlan(object):
       return None
 
   def _print_already(self, stagename):
-    print('\033[34mAlready: \033[3m{}\033[0m'.format(stagename))
+    print('\033[34mAlready: \033[3m{}\033[0m'.format(stagename), flush=True)
 
   def build_one(self, product_name):
     if product_name not in self.configures['packages']:
       raise Error('missing configure information for {!r}'.format(product_name))
     params = self._normalize_list(self.configures['common_params'] + self.configures['packages'][product_name].get('params', []))
     envs = self._normalize_list(self.configures['packages'][product_name].get('env', []))
-    print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product_name))
+    print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product_name), flush=True)
     product = self.products[product_name]
     self.untar(product, product.tarball, product.dirname)
     try:
@@ -281,7 +281,7 @@ class BuildPlan(object):
     self._record_done_stage(product, STAGENAME)
 
   def patch(self, product):
-    print('warning: patching unimplemented so far (YAGNI until you do)', file=sys.stderr)
+    print('warning: patching unimplemented so far (YAGNI until you do)', file=sys.stderr, flush=True)
 
   def run_configure(self, product, params, envs):
     STAGENAME = 'configure'
@@ -442,7 +442,7 @@ def _main(args, argv0):
   plan.process_configures()
 
   plan.ensure_have_each()
-  print('FIXME: load in patch-levels, load in per-product patch paths!')
+  print('FIXME: load in patch-levels, load in per-product patch paths!', flush=True)
   plan.build_each()
 
   #json.dump(plan.products, fp=sys.stdout, indent=2, cls=OurJSONEncoder)
