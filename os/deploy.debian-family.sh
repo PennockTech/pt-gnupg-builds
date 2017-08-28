@@ -33,7 +33,7 @@ debs=("out/$MACHINE"/*.deb)  # nb: relies upon nullglob
 note "debs found: ${debs[*]}"
 
 repo_endpoints=( $(machine_get repo_endpoints '[].spec' || echo 'none') )
-[[ "${repo_endpoints[1]}" == "none" ]] && skipme_die "no repo defined"
+[[ "${repo_endpoints[1]:-}" == "none" ]] && skipme_die "no repo defined"
 
 aws_profiles=()
 for (( i=0 ; i < ${#repo_endpoints[@]}; i++)); do

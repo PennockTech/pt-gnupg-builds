@@ -34,7 +34,16 @@
   },
   {
     "name": "jessie",
-    "box": "jessie/jessie64",
-    "base_script": "debian-family"
+    "box": "debian/jessie64",
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/debian/jessie"
+      },
+      {
+        "spec": "s3:pennocktech:pt/debian/jessie",
+        "aws_profile": "pennocktech"
+      }
+    ]
   }
 ]
