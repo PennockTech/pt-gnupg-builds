@@ -1,6 +1,13 @@
 # variables for tuning the deploy
 
-REPO_NAME='spodhuis'
+case "$MACHINE" in
+  trusty)
+    REPO_NAME='spodhuis' # historical reasons
+    ;;
+  *)
+    REPO_NAME="pt-$MACHINE"
+    ;;
+esac
 REPO_DISTRIBUTION="$MACHINE"
 
 SSH_USERHOST='fuji@orchard'

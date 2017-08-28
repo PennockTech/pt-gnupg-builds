@@ -2,7 +2,16 @@
   {
     "name": "xenial",
     "box": "ubuntu/xenial64",
-    "base_script": "debian-family"
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/ubuntu/xenial"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/xenial",
+        "aws_profile": "pennocktech"
+      }
+    ]
   },
   {
     "name": "trusty",
@@ -10,8 +19,17 @@
     "base_script": "debian-family",
     "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main",
     "repo_endpoints": [
-      "spodhuis/ubuntu/trusty",
-      "s3:spodhuis-packages:spodhuis/ubuntu/trusty"
+      {
+        "spec": "spodhuis/ubuntu/trusty"
+      },
+      {
+        "spec": "s3:spodhuis-packages:spodhuis/ubuntu/trusty",
+        "aws_profile": "spodhuis"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/trusty",
+        "aws_profile": "pennocktech"
+      }
     ]
   },
   {

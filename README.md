@@ -72,13 +72,38 @@ Updating
 * Changes in PGP signing keys will need to be reflected _both_ in the
   key-dumps in `confs/` and in `pgp_ownertrusts` defined in `confs/params.env`
 
----
 
-TODO FIXME:
+Adding new repo with aptly
+--------------------------
 
-Leave publish/signing for manual step, but emit instructions.
+With an S3 bucket set up, S3-website endpoint enabled (for top-level index),
+CloudFront providing HTTPS from an ACM-managed cert and DNS all handled
+elsewhere, the aptly steps are:
 
-If no repo defined, how figure out what needed?
-Have a `version-bumps.conf` file: `gnupg21 2.1.23 3` to build `-pdp3` not
-`-pdp1`.
-Have `patches/gnupg21-2.1.23-*` and `patches/gnupg21-all-*`
+```
+aptly repo create -comment "Pennock Tech Ubuntu Xenial repo" pt-xenial
+
+jq '.skipContentsPublishing=true' .aptly.conf > x && mv x .aptly.conf
+
+aptly publish \
+  -gpg-key 0x8AC8EE39F0C68907 \
+  -architectures amd64,i386,armel,armhf,arm64 \
+  -distribution xenial \
+  snapshot empty-snapshot pt/ubuntu/xenial
+
+jq '.S3PublishEndpoints.pennocktech={region:"us-east-2",bucket:"public-packages.pennock.tech",acl:"public-read"} ' .aptly.conf > x && mv x .aptly.conf
+AWS_PROFILE=pennocktech aptly publish \
+  -gpg-key 0x8AC8EE39F0C68907 \
+  -architectures amd64,i386,armel,armhf,arm64 \
+  -distribution xenial \
+  snapshot empty-snapshot s3:pennocktech:pt/ubuntu/xenial
+```
+
+Yields: `deb https://public-packages.pennock.tech/pt/ubuntu/xenial/ xenial main`
+
+
+Todo
+----
+
+* Have `patches/gnupg21-2.1.23-*` and `patches/gnupg21-all-*`
+* Audit for `XXX`, `FIXME`, `TODO`, `UNIMPLEMENTED`
