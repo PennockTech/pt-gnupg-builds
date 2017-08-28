@@ -48,7 +48,7 @@ done
 # In fact, the aptly invocation will not protect against whitespace either.
 
 ssh -T "$SSH_USERHOST" <<EOSSH
-mkdir -pv '${REPO_INGEST_DIR}'
+mkdir -pv '${REPO_INGEST_DIR}/old'
 EOSSH
 
 rsync -cWv -- "${debs[@]}" "${SSH_USERHOST}:${REPO_INGEST_DIR}/./"
@@ -81,6 +81,7 @@ cd '${REPO_INGEST_DIR}'
 aptly repo add '${REPO_NAME}' ${debs[@]##*/}
 snap='${REPO_SNAP_PREFIX}-$(date +%Y%m%d-%H%M%S)'
 aptly snapshot create "\$snap" from repo '${REPO_NAME}'
+mv *.deb old/./
 EOPUBLISH
 
 for (( i=0 ; i < ${#repo_endpoints[@]}; i++)); do

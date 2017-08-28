@@ -101,6 +101,21 @@ AWS_PROFILE=pennocktech aptly publish \
 
 Yields: `deb https://public-packages.pennock.tech/pt/ubuntu/xenial/ xenial main`
 
+FIXME: the snapshots below need to be dropped and the _first_ publish done
+differently.  Because.
+
+So on _first_ publish which fails, it's: `aptly publish drop xenial pt-xenial`
+and then _instead_ of:
+
+```
+AWS_PROFILE=pennocktech aptly publish -gpg-key 0x8AC8EE39F0C68907 -architectures amd64,i386,armel,armhf,arm64 switch xenial s3:pennocktech:pt/ubuntu/xenial spodhuis-gnupg-20170827-214643
+```
+
+we run:
+
+```
+AWS_PROFILE=pennocktech aptly publish -gpg-key 0x8AC8EE39F0C68907 -architectures amd64,i386,armel,armhf,arm64 snapshot -distribution=xenial spodhuis-gnupg-20170827-214643 s3:pennocktech:pt/ubuntu/xenial
+```
 
 Todo
 ----
