@@ -1,5 +1,5 @@
-pdp-gnupg-builds
-================
+pt-gnupg-builds
+===============
 
 Intended for packaging GnuPG and supporting tools for a variety of OS
 releases.
