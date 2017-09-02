@@ -77,7 +77,6 @@
       ]
     },
     "gnupg21": {
-      "comment": "TODO: what happened to the installed cmdname again?",
       "env": [
         "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig",
         "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
@@ -97,6 +96,29 @@
       ],
       "fixups": [
         "for F in #{temp_tree}#{prefix}/bin/*; do ln -sv \"$(basename \"$F\")\" \"${F}2.1\"; done",
+        "ln -sv gpg #{temp_tree}#{prefix}/bin/gpg2"
+      ]
+    },
+    "gnupg22": {
+      "env": [
+        "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig",
+        "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
+      ],
+      "params": [
+        "--disable-nls",
+        "--disable-ldap",
+        "--enable-noexecstack",
+        "--enable-key-cache=16384",
+        "--enable-wks-tools",
+        "--with-pinentry-pgm=#{prefix}/bin/pinentry-curses",
+        "--with-libgpg-error-prefix=#{prefix}",
+        "--with-libassuan-prefix=#{prefix}",
+        "--with-libgcrypt-prefix=#{prefix}",
+        "--with-ksba-prefix=#{prefix}",
+        "--with-npth-prefix=#{prefix}"
+      ],
+      "fixups": [
+        "for F in #{temp_tree}#{prefix}/bin/*; do ln -sv \"$(basename \"$F\")\" \"${F}2.2\"; done",
         "ln -sv gpg #{temp_tree}#{prefix}/bin/gpg2"
       ]
     }

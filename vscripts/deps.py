@@ -24,6 +24,7 @@ import requests
 # All defaults which should be overrideable with flags.
 BASE_DIR = '~/src'
 DEPENDENCIES_FN = '/vagrant/confs/dependencies.tsort-in'
+MUTEX_FN = '/vagrant/confs/mutual-exclude'
 SWDB_FN = './swdb.lst'
 TARBALLS_DIR = '/in'
 RESULTS_DIR = '/out'
@@ -35,6 +36,7 @@ PKG_EMAIL = 'unknown@localhost'
 PKG_PREFIX = 'optgnupg'
 PKG_VERSIONEXT = 'unknown'
 PKG_INSTALL_CMD = '/usr/local/bin/pt-build-pkg-install'  # wrapper: sudo dpkg -i (or equivalent per OS)
+PKG_UNINSTALL_CMD = '/usr/local/bin/pt-build-pkg-uninstall'
 
 class Error(Exception):
   """Base class for exceptions from build."""
@@ -66,6 +68,9 @@ class BuildPlan(object):
   def __init__(self, options):
     self.options = options
     self._get_depends(options.dependencies_file)
+    self._get_mutexes(options.mutex_file)
+    # FIXME: relies upon being run in clean OS images!
+    self.installed = set()
 
   def _get_depends(self, fn):
     p = subprocess.Popen(['tsort', fn],
@@ -89,6 +94,17 @@ class BuildPlan(object):
     for k in self.needs.keys():
       for rev in self.needs[k]:
         self.invalidates[rev].add(k)
+
+  def _get_mutexes(self, fn):
+    # partitions via sets where each member is a dict key pointing to the set
+    self.mutually_excluded = {}
+    for l in open(fn):
+      l = l.strip()
+      if not l or l.startswith('#'):
+        continue
+      not_together = set(l.split())
+      for member in not_together:
+        self.mutually_excluded[member] = not_together
 
   def process_swdb(self, fn=None):
     if fn is None:
@@ -257,6 +273,7 @@ class BuildPlan(object):
     envs = self._normalize_list(self.configures['packages'][product_name].get('env', []))
     print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product_name), flush=True)
     product = self.products[product_name]
+    self.ensure_clear_for(product)
     self.untar(product, product.tarball, product.dirname)
     try:
       os.chdir(product.dirname)
@@ -268,6 +285,27 @@ class BuildPlan(object):
       self.install_package(product, pkg_path) # need for later packages to build
     finally:
       os.chdir(os.path.expanduser(self.options.base_dir))
+
+  def ensure_clear_for(self, product):
+    if product.name not in self.mutually_excluded:
+      print('\033[38;5;49mNo packages defined as conflicting with {!r}\033[0m'.format(product.name), flush=True)
+      return
+    saw_conflict = []
+    for disallow in self.mutually_excluded[product.name]:
+      if disallow == product.name:
+        continue
+      if disallow in self.installed:
+        saw_conflict.append(disallow)
+        print('\033[31mConflicting package for {p.name!r} installed: \033[1m{c!r}\033[0m'.format(
+          p=product, c=disallow), flush=True)
+        self.uninstall(self.products[disallow])
+    if saw_conflict:
+      print('\033[38;5;49mPackage {p.name!r} in set [{s}]; uninstalled: [{u}]'.format(
+        p=product, s=' '.join(self.mutually_excluded[product.name]), u=' '.join(saw_conflict)), flush=True)
+    else:
+      print('\033[38;5;49mNo packages conflicting with {p.name!r} were installed [set: {s}]\033[0m'.format(
+        p=product, s=' '.join(self.mutually_excluded[product.name])), flush=True)
+
 
   def untar(self, product, tarball, expected_dirname):
     STAGENAME = 'untar'
@@ -386,6 +424,12 @@ class BuildPlan(object):
     subprocess.check_call([PKG_INSTALL_CMD, pkgpath],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
     self._record_done_stage(product, STAGENAME)
+    self.installed.add(product.name)
+
+  def uninstall(self, product):
+    # should we nuke stagenames for this product?
+    subprocess.check_call([PKG_UNINSTALL_CMD, self.options.pkg_prefix + '-' + product.filename_base],
+        stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
 
 
 def _main(args, argv0):
@@ -398,6 +442,9 @@ def _main(args, argv0):
   parser.add_argument('--dependencies-file',
                       type=str, default=DEPENDENCIES_FN,
                       help='Filename with pairs of dependencies therein [%(default)s]')
+  parser.add_argument('--mutex-file',
+                      type=str, default=MUTEX_FN,
+                      help='File where each line is names of packages which can\'t be installed together [%(default)s]')
   parser.add_argument('--swdb-file',
                       type=str, default=SWDB_FN,
                       help='Filename of downloaded & verified swdb list [%(default)s]')

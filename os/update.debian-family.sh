@@ -68,6 +68,12 @@ cat > /usr/local/bin/pt-build-pkg-install <<'EOBPI'
 exec sudo dpkg -i "$@"
 EOBPI
 chmod 755 /usr/local/bin/pt-build-pkg-install
+cat > /usr/local/bin/pt-build-pkg-uninstall <<'EOBPU'
+#!/bin/sh
+sudo dpkg -r "$@"
+sudo dpkg -P "$@"
+EOBPU
+chmod 755 /usr/local/bin/pt-build-pkg-uninstall
 
 # -----------------------------8< cut here >8-----------------------------
 # If we ever have non-debian stuff, we'll probably want to move stuff after
