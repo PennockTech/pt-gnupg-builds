@@ -21,12 +21,23 @@ JSON.load(open('confs/machines.json')).each do |m|
 end
 
 asset_indir = ENV["PT_GNUPG_IN"] || "./in"
-# Canonical would be: https://www.gnupg.org/ftp/gcrypt/
-download_mirror = ENV["PT_GNUPG_DOWNLOAD_MIRROR"] || "https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/"
 
-vbuild_args = ["MIRROR=#{download_mirror}"]
+# Triggers local environmental actions such as configuring home cache; this
+# should become somewhat less kludgy.
+enable_ptlocal = ENV["NAME"] == "Phil Pennock"
+
+# Passed onto the actual build invocation.
+vbuild_env = {
+  # Canonical would be: https://www.gnupg.org/ftp/gcrypt/
+  'MIRROR': ENV['PT_GNUPG_DOWNLOAD_MIRROR'] || 'https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/'
+}
 ENV.select {|k,v| k.start_with?('PKG_')}.each do |k,v|
-  vbuild_args << "#{k}=#{v}"
+  case k
+  when 'PKG_CONFIG_PATH'
+    nil
+  else
+    vbuild_env[k] = v
+  end
 end
 
 Vagrant.configure("2") do |config|
@@ -65,11 +76,8 @@ Vagrant.configure("2") do |config|
       # each VM in the list above.
 
       # intended for stuff like configuring apt caches, very local
-      # open to better ways of doing this
-      if ENV["NAME"] == "Phil Pennock"
-        if File.exists?("os/ptlocal.#{ptb.base_script}.sh")
-          node.vm.provision "shell", path: "os/ptlocal.#{ptb.base_script}.sh", name: "pennocktech-local"
-        end
+      if enable_ptlocal and File.exists?("os/ptlocal.#{ptb.base_script}.sh")
+        node.vm.provision "shell", path: "os/ptlocal.#{ptb.base_script}.sh", name: "pennocktech-local"
       end
 
       # core OS update and prep for Doing Things
@@ -102,9 +110,9 @@ Vagrant.configure("2") do |config|
 
       node.vm.provision "shell" do |s|
         s.name = "build"
-        s.path = "vscripts/build.sh"
+        s.path = "vscripts/deps.py"
         s.privileged = false
-        s.args = vbuild_args
+        s.env = vbuild_env
       end
     end
   end
