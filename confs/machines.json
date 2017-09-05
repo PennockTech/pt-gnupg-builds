@@ -9,7 +9,8 @@
       },
       {
         "spec": "s3:pennocktech:pt/ubuntu/xenial",
-        "aws_profile": "pennocktech"
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
       }
     ]
   },
@@ -28,7 +29,8 @@
       },
       {
         "spec": "s3:pennocktech:pt/ubuntu/trusty",
-        "aws_profile": "pennocktech"
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
       }
     ]
   },
@@ -42,7 +44,8 @@
       },
       {
         "spec": "s3:pennocktech:pt/debian/jessie",
-        "aws_profile": "pennocktech"
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
       }
     ]
   }

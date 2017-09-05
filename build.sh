@@ -55,6 +55,8 @@ deploy_one() {
     3) note >&2 "[$machine] deploy failed but indicated non-fatal" ;;
     *) note >&2 "[$machine] deploy failed exiting $ev"; exit $ev ;;
   esac
+
+  ./tools/caching_invalidate "$machine"
 }
 
 if [[ -f site-local.env ]]; then
