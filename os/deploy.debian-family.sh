@@ -1,6 +1,11 @@
 #!/bin/bash -eu
 
 readonly MACHINE="${1:?need a machine to sync content for}"
+if [[ "${2:-.}" == "-initial" ]]; then
+  readonly InitialPublish=true
+else
+  readonly InitialPublish=false
+fi
 
 # shellcheck source=../confs/deploy.sh
 . ./confs/deploy.sh
@@ -94,7 +99,11 @@ for (( i=0 ; i < ${#repo_endpoints[@]}; i++)); do
   else
     printf "%s\n" "export AWS_PROFILE='${aws_profile}'"
   fi
-  printf 'aptly_publish switch "%s" "%s" "%s"\n' "${REPO_DISTRIBUTION}" "${endpoint}" '$snap'
+  if $InitialPublish; then
+    printf 'aptly_publish snapshot -distribution="%s" "%s" "%s"\n' "${REPO_DISTRIBUTION}" '$snap' "${endpoint}"
+  else
+    printf 'aptly_publish switch "%s" "%s" "%s"\n' "${REPO_DISTRIBUTION}" "${endpoint}" '$snap'
+  fi
 done >> "$publish_fn"
 
 printf >> "$publish_fn" '\n%s\n' "${agent_end}"

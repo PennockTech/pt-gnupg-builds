@@ -45,8 +45,13 @@ deploy_one() {
     return
   fi
 
+  cmdline=("$deploy" "$machine")
+  if [[ -n "${PT_INITIAL_DEPLOY:-}" ]]; then
+    cmdline+=('-initial')
+  fi
+
   set +e
-  "$deploy" "$machine"
+  "${cmdline[@]}"
   ev=$?
   set -e
 

@@ -48,5 +48,20 @@
         "aws_cloudfront": "EFI5I7XJ5E6BC"
       }
     ]
+  },
+  {
+    "name": "stretch",
+    "box": "debian/stretch64",
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/debian/stretch"
+      },
+      {
+        "spec": "s3:pennocktech:pt/debian/stretch",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
   }
 ]

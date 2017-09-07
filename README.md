@@ -84,38 +84,18 @@ elsewhere, the aptly steps are:
 aptly repo create -comment "Pennock Tech Ubuntu Xenial repo" pt-xenial
 
 jq '.skipContentsPublishing=true' .aptly.conf > x && mv x .aptly.conf
+```
 
-aptly publish \
-  -gpg-key 0x8AC8EE39F0C68907 \
-  -architectures amd64,i386,armel,armhf,arm64 \
-  -distribution xenial \
-  snapshot empty-snapshot pt/ubuntu/xenial
+and then here:
 
-jq '.S3PublishEndpoints.pennocktech={region:"us-east-2",bucket:"public-packages.pennock.tech",acl:"public-read"} ' .aptly.conf > x && mv x .aptly.conf
-AWS_PROFILE=pennocktech aptly publish \
-  -gpg-key 0x8AC8EE39F0C68907 \
-  -architectures amd64,i386,armel,armhf,arm64 \
-  -distribution xenial \
-  snapshot empty-snapshot s3:pennocktech:pt/ubuntu/xenial
+```
+PT_INITIAL_DEPLOY=t ./build.sh xenial
 ```
 
 Yields: `deb https://public-packages.pennock.tech/pt/ubuntu/xenial/ xenial main`
 
-FIXME: the snapshots below need to be dropped and the _first_ publish done
-differently.  Because.
+We could move repo creation in-tool too, but currently leaving that out.
 
-So on _first_ publish which fails, it's: `aptly publish drop xenial pt-xenial`
-and then _instead_ of:
-
-```
-AWS_PROFILE=pennocktech aptly publish -gpg-key 0x8AC8EE39F0C68907 -architectures amd64,i386,armel,armhf,arm64 switch xenial s3:pennocktech:pt/ubuntu/xenial spodhuis-gnupg-20170827-214643
-```
-
-we run:
-
-```
-AWS_PROFILE=pennocktech aptly publish -gpg-key 0x8AC8EE39F0C68907 -architectures amd64,i386,armel,armhf,arm64 snapshot -distribution=xenial spodhuis-gnupg-20170827-214643 s3:pennocktech:pt/ubuntu/xenial
-```
 
 Todo
 ----
