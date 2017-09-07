@@ -38,6 +38,10 @@ PKG_VERSIONEXT = 'unknown'
 PKG_INSTALL_CMD = '/usr/local/bin/pt-build-pkg-install'  # wrapper: sudo dpkg -i (or equivalent per OS)
 PKG_UNINSTALL_CMD = '/usr/local/bin/pt-build-pkg-uninstall'
 
+PACKAGE_TYPES = {
+    'debian-family': 'deb',
+    }
+
 class Error(Exception):
   """Base class for exceptions from build."""
   pass
@@ -398,7 +402,7 @@ class BuildPlan(object):
     cmdline = [
       'fpm',
       '-s', 'dir',
-      '-t', 'deb', # FIXME when not debs
+      '-t', PACKAGE_TYPES[self.options.ostype],
       '-m', self.options.pkg_email,
       '-p', os.path.join(self.options.results_dir, 'NAME_FULLVERSION_ARCH.EXTENSION'),
       '-C', temp_tree,
@@ -409,6 +413,9 @@ class BuildPlan(object):
     for depname in self.direct_needs[product.name]:
       cmdline.append('-d')
       cmdline.append(self.options.pkg_prefix + '_' + depname)
+    for dep in self.configures['packages'][product.name].get('os-deps', {}).get(self.options.ostype, []):
+      cmdline.append('-d')
+      cmdline.append(dep)
     cmdline.append(os.path.normpath(self.configures['prefix']).lstrip(os.path.sep).split(os.path.sep)[0]) # aka: 'opt'
     subprocess.check_call(cmdline,
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
@@ -478,6 +485,9 @@ def _main(args, argv0):
   parser.add_argument('--pkg-version-ext',
                       type=str, default=os.environ.get('PKG_VERSIONEXT', PKG_VERSIONEXT),
                       help='Version suffix base for packages [%(default)s]')
+  parser.add_argument('--ostype',
+                      type=str, choices=PACKAGE_TYPES.keys(), default='debian-family',
+                      help='OS type for various packaging defaults')
   options = parser.parse_args(args=args)
 
   # will double-expand `~` if the shell already did that; acceptable.

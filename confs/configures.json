@@ -27,7 +27,13 @@
         "--with-included-libtasn1",
         "--with-included-unistring",
         "--without-p11-kit"
-      ]
+      ],
+      "os-deps": {
+        "debian-family": [
+          "libopts25",
+          "libunbound2"
+        ]
+      }
     },
     "npth": {
       "params": [
@@ -74,7 +80,12 @@
         "--with-libassuan-prefix=#{prefix}",
         "--enable-pinentry-curses",
         "--enable-pinentry-tty"
-      ]
+      ],
+      "os-deps": {
+        "debian-family": [
+          "libsecret-1-0"
+        ]
+      }
     },
     "gnupg22": {
       "env": [

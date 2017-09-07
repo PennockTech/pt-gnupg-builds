@@ -51,6 +51,10 @@ pt_apt_get install libsqlite3-dev libncurses5-dev lzip jq xz-utils
 # python-pip for our build scripts; probably xenial?  trusty wants python3-pip
 pt_apt_get install ruby ruby-dev python3 git curl python-pip python3-pip
 
+# gnutls aux tools: libopts25 libunbound2
+# pinentry: libsecret-1-0
+pt_apt_get install libopts25 libunbound2 libsecret-1-0
+
 # Ideally we'd not use root for fpm/ruby but it's a short-lived OS image.
 # Doing this as the user is "not sane", alas.  Could use rbenv etc, but
 # that's a lot of framework and interpreter compilation when we just want

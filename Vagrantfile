@@ -112,6 +112,7 @@ Vagrant.configure("2") do |config|
         s.name = "build"
         s.path = "vscripts/deps.py"
         s.privileged = false
+        s.args = ['--ostype', ptb.base_script]
         s.env = vbuild_env
       end
     end
