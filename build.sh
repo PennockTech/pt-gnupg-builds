@@ -22,7 +22,7 @@ build_one() {
   fi
   mkdir -pv "$outputs"
   vagrant ssh-config "$machine" > "$sshconf"
-  scp -F "$sshconf" -r "${machine}:/out/*" "$outputs/./"
+  rsync -e "ssh -F $sshconf" -cWrv "${machine}:/out/" "$outputs/./"
   rm -f "$sshconf"
   if [[ -z "${PT_MACHINE_KEEP:-}" ]]; then
     vagrant destroy -f "$machine"
