@@ -79,13 +79,21 @@
         "--with-libgpg-error-prefix=#{prefix}",
         "--with-libassuan-prefix=#{prefix}",
         "--enable-pinentry-curses",
-        "--enable-pinentry-tty"
+        "--enable-pinentry-tty",
+        "--enable-libsecret"
       ],
       "os-deps": {
         "debian-family": [
           "libsecret-1-0"
         ]
-      }
+      },
+      "fixups": [
+        "ln -nsfv pinentry-curses #{temp_tree}#{prefix}/bin/pinentry"
+      ],
+      "comments": [
+        "pinentry defaults to symlink to pinentry-gtk-2; we already configure gnupg to default to -curses",
+        "libsecret got pulled in as dep on some OSes anyway. Makes enough sense to force it on."
+      ]
     },
     "gnupg22": {
       "env": [

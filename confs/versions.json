@@ -8,7 +8,7 @@
   "overrides": {
     "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" },
     "gnutls": { "pkg_version": "2", "reason": "[3.5.15] added os lib deps" },
-    "pinentry": { "pkg_version": "2", "reason": "[1.0.0] added os lib deps" }
+    "pinentry": { "pkg_version": "3", "reason": "[1.0.0] added os lib deps; forced symlink to -curses and libsecret" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }
