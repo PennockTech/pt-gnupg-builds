@@ -74,6 +74,7 @@ fi
 if [[ $# -eq 0 ]]; then
   printf "%s: %s" "${progname}" "available boxes: "
   jq -r < confs/machines.json '.[].name' | xargs
+  printf "%s: %s\n" "${progname}" "consider: vagrant box update"
   exit
 fi
 
