@@ -92,6 +92,11 @@ if [[ -z "${PT_SKIP_DEPLOY:-}" && -z "${PT_SKIP_GPGDELAY_PROMPT:-}" ]]; then
   read -p 'Hit enter when ready ...' ok
 fi
 
+if [[ ! -r "${AWS_SHARED_CREDENTIALS_FILE:-$HOME/.aws/credentials}" ]]; then
+  note >&2 "Missing aws credentials, is the volume mounted?"
+  exit 1
+fi
+
 for machine
 do
   deploy_one "$machine"
