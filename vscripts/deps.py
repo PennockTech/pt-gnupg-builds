@@ -21,16 +21,21 @@ import tempfile
 
 import requests
 
+# This is so wrong; the defaults should be defined as relative to dirs settable
+# with flags, so that don't need to override these early with environ.  I
+# messed up.
+CONFS_DIR = os.environ.get('PT_BUILD_CONFIGS_DIR', '/vagrant/confs')
+TARBALLS_DIR = os.environ.get('PT_BUILD_TARBALLS_DIR', '/in')
+RESULTS_DIR = os.environ.get('PT_BUILD_OUTPUTS_DIR', '/out')
+
 # All defaults which should be overrideable with flags.
 BASE_DIR = '~/src'
-DEPENDENCIES_FN = '/vagrant/confs/dependencies.tsort-in'
-MUTEX_FN = '/vagrant/confs/mutual-exclude'
-SWDB_FN = './swdb.lst'
-TARBALLS_DIR = '/in'
-RESULTS_DIR = '/out'
+DEPENDENCIES_FN = CONFS_DIR + '/dependencies.tsort-in'
+MUTEX_FN = CONFS_DIR + '/mutual-exclude'
+SWDB_FN = TARBALLS_DIR + '/swdb.lst'
 PATCHES_DIR = '/vagrant/patches'
-VERSIONS_FN = '/vagrant/confs/versions.json'
-CONFIGURES_FN = '/vagrant/confs/configures.json'
+VERSIONS_FN = CONFS_DIR + '/versions.json'
+CONFIGURES_FN = CONFS_DIR + '/configures.json'
 MIRROR_URL = 'https://www.gnupg.org/ftp/gcrypt/'
 PKG_EMAIL = 'unknown@localhost'
 PKG_PREFIX = 'optgnupg'
@@ -117,7 +122,7 @@ class BuildPlan(object):
     p = None
     for l in open(fn):
       prod_attr, value = l.strip().split()
-      if '_w32' in prod_attr:
+      if '_w32' in prod_attr or '_src_' in prod_attr or '_exe_' in prod_attr or '_isrc_' in prod_attr:
         continue
       prod, attr = prod_attr.split('_', 1)
       # pragmatic tears here
@@ -187,7 +192,7 @@ class BuildPlan(object):
       if not os.path.exists(path_name):
         self.fetch_file(dl_src + ext, path_name)
 
-    subprocess.check_call('gpg --trust-model direct --verify'.split() + [want_path + ext],
+    subprocess.check_call([self.options.gpg, '--trust-model', self.options.gnupg_trust_model, '--verify', want_path + ext],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
 
   def ensure_3rdparty_product(self, product, tardir):
@@ -467,6 +472,12 @@ def _main(args, argv0):
   parser.add_argument('--configures-file',
                       type=str, default=CONFIGURES_FN,
                       help='Filename of configure instructions [%(default)s]')
+  parser.add_argument('--gpg',
+                      type=str, default='gpg',
+                      help='gpg command to use [%(default)s]')
+  parser.add_argument('--gnupg-trust-model',
+                      type=str, default='direct',
+                      help='GnuPG trust model to use [%(default)s]')
   parser.add_argument('--pkg-install-cmd',
                       type=str, default=PKG_INSTALL_CMD,
                       help='Command to install a package [%(default)s]')
@@ -488,6 +499,13 @@ def _main(args, argv0):
   parser.add_argument('--ostype',
                       type=str, choices=PACKAGE_TYPES.keys(), default='debian-family',
                       help='OS type for various packaging defaults')
+  parser.add_argument('--prepare-outside',
+                      action='store_true', default=False,
+                      help='Do stuff we want outside the VMs')
+  parser.add_argument('--run-inside',
+                      action='store_true', default=False,
+                      help='Only stuff we want inside the VMs')  # added as noop, but Vagrant uses, so is available as a guard
+
   options = parser.parse_args(args=args)
 
   # will double-expand `~` if the shell already did that; acceptable.
@@ -499,6 +517,10 @@ def _main(args, argv0):
   plan.process_configures()
 
   plan.ensure_have_each()
+
+  if options.prepare_outside:
+    return
+
   print('FIXME: load in patch-levels, load in per-product patch paths!', flush=True)
   plan.build_each()
 

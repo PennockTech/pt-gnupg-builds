@@ -78,6 +78,12 @@ if [[ $# -eq 0 ]]; then
   exit
 fi
 
+./tools/host.presetup.sh
+PT_BUILD_CONFIGS_DIR=./confs PT_BUILD_TARBALLS_DIR="./in" \
+  ./vscripts/deps.py --prepare-outside --base-dir . --gnupg-trust-model tofu
+
+[[ $1 == local ]] && exit 0
+
 for machine
 do
   build_one "$machine" "out/$machine"
