@@ -21,11 +21,21 @@ gpg --import "${CONFS_DIR:?}/pgp-swdb-signing-key.asc" "${CONFS_DIR:?}/tarballs-
 mkdir -pv "${DOWNLOADS_DIR:?}"
 cd "${DOWNLOADS_DIR:?}"
 echo "Fetching SWDB and verifying"
+need_fetch=true
 if [ -f swdb.lst ] && [ -f swdb.lst.sig ]; then
-  :
-else
+  eval "$(stat -s swdb.lst)"
+  if expr >/dev/null $st_ctime \> \( $(date +%s) - 7200 \) ; then
+    echo "  ... have a recent copy"
+    need_fetch=false
+  else
+    echo "  ... copy on disk is too old, refetching"
+  fi
+fi
+
+if $need_fetch; then
   curl -Ss --remote-name-all https://versions.gnupg.org/swdb.lst https://versions.gnupg.org/swdb.lst.sig
 fi
+
 for key in $pgp_ownertrusts ; do
   gpg --tofu-policy good ${key%:?:}
 done
