@@ -104,7 +104,7 @@
         "--disable-nls",
         "--disable-ldap",
         "--enable-noexecstack",
-        "--enable-key-cache=16384",
+        "--enable-key-cache=32768",
         "--enable-wks-tools",
         "--with-pinentry-pgm=#{prefix}/bin/pinentry-curses",
         "--with-libgpg-error-prefix=#{prefix}",
