@@ -80,6 +80,7 @@ class BuildPlan(object):
     self._get_mutexes(options.mutex_file)
     # FIXME: relies upon being run in clean OS images!
     self.installed = set()
+    self._fetched = []
 
   def _get_depends(self, fn):
     p = subprocess.Popen(['tsort', fn],
@@ -217,12 +218,13 @@ class BuildPlan(object):
     self.products[product] = p
 
   def fetch_file(self, url, outpath):
-    print('Fetching <{}>'.format(url), flush=True)
+    print('\033[36;1mFetching <{}>\033[0m'.format(url), flush=True)
     r = requests.get(url, stream=True)
     r.raise_for_status()
     with open(outpath, 'wb') as fd:
       for chunk in r.iter_content(chunk_size=4096):
         fd.write(chunk)
+    self._fetched.append(outpath)
 
   def build_each(self):
     for product_name in self.ordered:
@@ -443,6 +445,22 @@ class BuildPlan(object):
     subprocess.check_call([PKG_UNINSTALL_CMD, self.options.pkg_prefix + '-' + product.filename_base],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
 
+  def report(self):
+    print('\nFetched {} files'.format(len(self._fetched)), end='')
+    if self._fetched:
+      print(':')
+      for f in self._fetched:
+        short = f.rsplit('/', 1)[-1]
+        print('  {}'.format(short))
+    else:
+      print('.')
+    print('Installed {} files'.format(len(self.installed)), end='')
+    if self.installed:
+      print(':')
+      for p in sorted(self.installed):
+        print('  {}'.format(p))
+    else:
+      print('.')
 
 def _main(args, argv0):
   parser = argparse.ArgumentParser(
@@ -519,6 +537,7 @@ def _main(args, argv0):
   plan.ensure_have_each()
 
   if options.prepare_outside:
+    plan.report()
     return
 
   print('FIXME: load in patch-levels, load in per-product patch paths!', flush=True)
@@ -526,6 +545,7 @@ def _main(args, argv0):
 
   #json.dump(plan.products, fp=sys.stdout, indent=2, cls=OurJSONEncoder)
   #print()
+  plan.report()
 
   return 0
 
