@@ -1,5 +1,6 @@
 /*.log
 /in/
+/old-in/
 /out/
 /tmp.ssh-config.*
 /site-local.env
