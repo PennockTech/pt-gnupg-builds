@@ -4,8 +4,8 @@
 # We're not pure-posix-sh, we use 'local' in functions.
 # So we declare as bash.  So use [[..]]
 
-progname="$(basename "$0")"
-note() { printf "%s: %s\n" "$progname" "$*"; }
+progname="$(basename -s .sh "$0")"
+note() { printf '%s: %s\n' "$progname" "$*"; }
 
 build_one() {
   local -r machine="${1:-need a machine name}"
@@ -17,8 +17,11 @@ build_one() {
   fi
   set -x
   if [[ -z "${PT_MACHINE_MUST_EXIST:-}" ]]; then
-    vagrant up --provision "$machine"
-    # alas, that does not exit non-zero if the build fails.  :^(
+    if [[ -n "${PT_RESUME_BUILD:-}" ]]; then
+      vagrant provision "$machine"
+    else
+      vagrant up --provision "$machine"
+    fi
   fi
   mkdir -pv "$outputs"
   vagrant ssh-config "$machine" > "$sshconf"
@@ -72,9 +75,8 @@ else
 fi
 
 if [[ $# -eq 0 ]]; then
-  printf "%s: %s" "${progname}" "available boxes: "
-  jq -r < confs/machines.json '.[].name' | xargs
-  printf "%s: %s\n" "${progname}" "consider: vagrant box update"
+  note "available boxes:" $(jq -r < confs/machines.json '.[].name')
+  note "consider: vagrant box update"
   exit
 fi
 
@@ -82,7 +84,8 @@ fi
 PT_BUILD_CONFIGS_DIR=./confs PT_BUILD_TARBALLS_DIR="./in" \
   ./vscripts/deps.py --prepare-outside --base-dir . --gnupg-trust-model tofu
 
-[[ $1 == local ]] && exit 0
+[[ "$1" == local ]] && exit 0
+[[ "$1" == all ]] && set $(jq -r < confs/machines.json '.[].name')
 
 for machine
 do

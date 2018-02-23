@@ -38,7 +38,7 @@ build packages without trying to put them live on the repo server.
 ## see list of machines, typically named for OS
 % ./build.sh xenial
 ## if problems: edit, fix, then:
-% vagrant provision xenial
+% PT_RESUME_BUILD=t ./build.sh xenial
 ## and repeat until build.sh might work.
 ```
 
