@@ -91,6 +91,7 @@ _update_file_from_userkeyring() {
   local t; t="$(set_for_tag "$1")"; eval "${t:-false}"; unset t
   note "Exporting to ${file}: ${keys}"
   "${GPG}" </dev/null --batch \
+    --armor \
     --export-options "export-local-sigs export-clean" \
     --export $keys  > "$file"
 }
