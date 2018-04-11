@@ -3,9 +3,13 @@
   "products": {
     "gmp": { "version": "6.1.2", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
     "nettle": { "version": "3.4", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
-    "gnutls": { "version": "3.5.18", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/" }
+    "gnutls": { "version": "3.6.2", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
+    "libgcrypt": { "pkg_version": "2", "reason": "[1.8.2] bumped libgpg-error dependency" },
+    "libksba": { "pkg_version": "2", "reason": "[1.3.5] bumped libgpg-error dependency" },
+    "libassuan": { "pkg_version": "2", "reason": "[2.5.1] bumped libgpg-error dependency" },
+    "pinentry": { "pkg_version": "2", "reason": "[1.1.0] bumped libgpg-error dependency" },
     "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" }
   },
   "_final": "vim: set ft=json sw=2 :"
