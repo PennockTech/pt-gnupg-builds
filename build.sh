@@ -34,6 +34,21 @@ build_one() {
 }
 
 deploy_one() {
+  # We are agnostic here as to things like "aptly for Debian-ish systems", but
+  # that's all that was supported in-repo when this comment was last updated,
+  # so for now we'll assume aptly for this description.
+  #
+  # We access AWS from two places: from the aptly box, which has *limited*
+  # credentials available to it via classic AWS configuration, and locally on
+  # the laptop, which uses 99designs/aws-vault to heavily restrict access to
+  # credentials.
+  #
+  # The deploy script sets up the shell fragments to be run on the aptly box
+  # and so references those credentials.  Separately, we have a
+  # caching-invalidation tool, run locally on the laptop, and which can't just
+  # set a profile name and call it done, because the script is Python using boto,
+  # rather than dispatching through our aws shim.  But we can let the tool know
+  # how to get credentials _from_ aws-vault.
   local -r machine="${1:-need a machine name}"
   if [[ -n "${PT_SKIP_DEPLOY:-}" ]]; then
     note "[$machine] skipping deploy-to-reposerver because PT_SKIP_DEPLOY set"
@@ -101,10 +116,11 @@ if [[ -z "${PT_SKIP_DEPLOY:-}" && -z "${PT_SKIP_GPGDELAY_PROMPT:-}" ]]; then
   read -p 'Hit enter when ready ...' ok
 fi
 
-if [[ ! -r "${AWS_SHARED_CREDENTIALS_FILE:-$HOME/.aws/credentials}" ]]; then
-  note >&2 "Missing aws credentials, is the volume mounted?"
-  exit 1
-fi
+# Trust that we have aws-vault available?
+#if [[ ! -r "${AWS_SHARED_CREDENTIALS_FILE:-$HOME/.aws/credentials}" ]]; then
+#  note >&2 "Missing aws credentials, is the volume mounted?"
+#  exit 1
+#fi
 
 for machine
 do

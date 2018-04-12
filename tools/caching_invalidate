@@ -15,6 +15,7 @@ import argparse
 import functools
 import json
 import os
+import subprocess
 import sys
 import time
 
@@ -45,9 +46,33 @@ class Verbose(object):
       return
     print(self.prefix, item, sep='', file=sys.stderr, flush=True)
 
+def get_awsvault_access_credentials(profile_name):
+  # We don't need IAM, so don't need --no-session here
+  cmdline = ['aws-vault', 'exec', profile_name, '--',
+             'python', '-c',
+             'import json,os; print(json.dumps({k:os.environ[k] for k in os.environ if k.startswith("AWS_")}))',
+            ]
+  cmd = subprocess.run(cmdline, check=True, stdout=subprocess.PIPE, stderr=sys.stderr)
+  d = json.loads(cmd.stdout)
+  if 'AWS_PROFILE' not in d:
+    d['AWS_PROFILE'] = profile_name
+  return d
+
 @functools.lru_cache(maxsize=4)
 def Get_AWS_Session(profile_name):
-  return boto3.Session(profile_name=profile_name)
+  d = get_awsvault_access_credentials(profile_name)
+  args = {}
+  for tup in (
+      ('profile_name', 'AWS_PROFILE'),
+      ('aws_access_key_id', 'AWS_ACCESS_KEY_ID'),
+      ('aws_secret_access_key', 'AWS_SECRET_ACCESS_KEY'),
+      ('aws_session_token', 'AWS_SESSION_TOKEN'),
+  ):
+    param, k = tup
+    if k not in d:
+      continue
+    args[param] = d[k]
+  return boto3.Session(**args)
 
 
 class MachinesConfig(object):
