@@ -35,6 +35,22 @@
     ]
   },
   {
+    "name": "bionic",
+    "box": "ubuntu/bionic64",
+    "base_script": "debian-family",
+    "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/bionic bionic main",
+    "repo_endpoints": [
+      {
+        "spec": "pt/ubuntu/bionic"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/bionic",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
+  },
+  {
     "name": "jessie",
     "box": "debian/jessie64",
     "base_script": "debian-family",

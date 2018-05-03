@@ -61,7 +61,7 @@ Updating
 
 * Adding a new box (OS) for building on goes into `confs/machines.json`; the
   values are parsed in the `Vagrantfile` and also used elsewhere (`jq` in
-  scripts).
+  scripts).  Do not add the repo field until the initial run is complete.
 * A new version of GnuPG software should come automatically from `swdb.lst`
 * A new version of non-GnuPG dependent software goes in `confs/versions.json`
 * Changing how a package is built goes in `confs/configures.json`

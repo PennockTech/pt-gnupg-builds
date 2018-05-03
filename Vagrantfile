@@ -39,6 +39,9 @@ ENV.select {|k,v| k.start_with?('PKG_')}.each do |k,v|
     vbuild_env[k] = v
   end
 end
+if ENV.has_key?('PT_INITIAL_DEPLOY')
+  vbuild_env['PT_INITIAL_DEPLOY'] = ENV['PT_INITIAL_DEPLOY']
+end
 
 Vagrant.configure("2") do |config|
   # In each machine, this directory is exposed as /vagrant, read-write
@@ -89,6 +92,7 @@ Vagrant.configure("2") do |config|
           s.name = "gnupg-repo-setup"
           s.path = "os/gnupg-repos.#{ptb.base_script}.sh"
           s.args = [ptb.repo]
+          s.env = vbuild_env
         end
       end
 
@@ -106,7 +110,7 @@ Vagrant.configure("2") do |config|
       # I'm guessing that there's some synced_folder rsync framework which
       # pre-creates the directory so that things worked anyway?
 
-      node.vm.provision "shell", path: "vscripts/user.presetup.sh", privileged: false, name: "user-presetup"
+      node.vm.provision "shell", path: "vscripts/user.presetup.sh", privileged: false, name: "user-presetup", env: vbuild_env
 
       node.vm.provision "shell" do |s|
         s.name = "build"
