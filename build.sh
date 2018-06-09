@@ -6,6 +6,7 @@
 
 progname="$(basename -s .sh "$0")"
 note() { printf '%s: %s\n' "$progname" "$*"; }
+die() { note >&2 "$@"; exit 1; }
 
 build_one() {
   local -r machine="${1:-need a machine name}"
@@ -115,6 +116,7 @@ if [[ -z "${PT_SKIP_DEPLOY:-}" && -z "${PT_SKIP_GPGDELAY_PROMPT:-}" ]]; then
   echo ""
   read -p 'Hit enter when ready ...' ok
 fi
+[[ -f "$HOME/.aws/config" ]] || die "missing ~/.aws/config"
 
 # Trust that we have aws-vault available?
 #if [[ ! -r "${AWS_SHARED_CREDENTIALS_FILE:-$HOME/.aws/credentials}" ]]; then
