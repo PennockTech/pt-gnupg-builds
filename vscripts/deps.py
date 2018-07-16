@@ -127,8 +127,8 @@ class BuildPlan(object):
         continue
       prod, attr = prod_attr.split('_', 1)
       # pragmatic tears here
-      if prod == 'libgpg' and attr.startswith('error_'):
-        prod = 'libgpg_error'
+      if prod in set(['libgpg', 'gpgrt']) and attr.startswith('error_'):
+        prod += '_error'
         attr = attr[6:]
       if p is not None and p.product != prod:
         self.product_list.append(p)
