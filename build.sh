@@ -3,6 +3,17 @@
 # This is run locally outside the VM.
 # We're not pure-posix-sh, we use 'local' in functions.
 # So we declare as bash.  So use [[..]]
+readonly ControlHelp='Env vars:
+  PT_SKIP_BUILD=t to skip builds
+  PT_MACHINE_MUST_EXIST=t to avoid machine provisioning
+  PT_RESUME_BUILD=t to just provision, instead of build
+  PT_MACHINE_KEEP=t to not destroy the VM afterwards
+
+  PT_SKIP_DEPLOY=t to skip deploys
+  PT_SKIP_GPGDELAY_PROMPT=t to continue on immediately without prompt
+    -- the prompt helps avoids timeouts by making sure you are present
+  PT_INITIAL_DEPLOY=t for initial setup of apt repo for this system
+'
 
 progname="$(basename -s .sh "$0")"
 note() { printf '%s: %s\n' "$progname" "$*"; }
@@ -91,8 +102,9 @@ else
 fi
 
 if [[ $# -eq 0 ]]; then
-  note "available boxes:" $(jq -r < confs/machines.json '.[].name')
+  note "available boxes ['all']:" $(jq -r < confs/machines.json '.[].name')
   note "consider: vagrant box update"
+  note "$ControlHelp"
   exit
 fi
 
