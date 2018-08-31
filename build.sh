@@ -108,9 +108,13 @@ if [[ $# -eq 0 ]]; then
   exit
 fi
 
-./tools/host.presetup.sh
-PT_BUILD_CONFIGS_DIR=./confs PT_BUILD_TARBALLS_DIR="./in" \
-  ./vscripts/deps.py --prepare-outside --base-dir . --gnupg-trust-model tofu
+if [[ -n "${PT_SKIP_BUILD:-}" ]]; then
+  note "local: skipping pre-build setup because PT_SKIP_BUILD set"
+else
+  ./tools/host.presetup.sh
+  PT_BUILD_CONFIGS_DIR=./confs PT_BUILD_TARBALLS_DIR="./in" \
+    ./vscripts/deps.py --prepare-outside --base-dir . --gnupg-trust-model tofu
+fi
 
 [[ "$1" == local ]] && exit 0
 [[ "$1" == all ]] && set $(jq -r < confs/machines.json '.[].name')
@@ -141,3 +145,4 @@ do
   deploy_one "$machine"
 done
 
+# vim: set sw=2 et :
