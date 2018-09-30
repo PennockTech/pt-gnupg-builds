@@ -101,7 +101,11 @@ else
   note "missing file site-local.env; see README, might be badly tuned"
 fi
 
-if [[ $# -eq 0 ]]; then
+if [[ "${1:-}" == "--help" || "${1:-help}" == "help" ]]; then
+  note "invoke with 'local' to just fetch/verify sources"
+  note "invoke with 'all' or a list of machine-names to build"
+  note "environment variables control more"
+  note ''
   note "available boxes ['all']:" $(jq -r < confs/machines.json '.[].name')
   note "consider: vagrant box update"
   note "$ControlHelp"
