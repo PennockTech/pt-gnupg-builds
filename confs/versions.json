@@ -2,7 +2,7 @@
   "about": "These are the third-party products which we depend upon",
   "products": {
     "gmp": { "version": "6.1.2", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
-    "nettle": { "version": "3.4", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
+    "nettle": { "version": "3.4.1", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
     "gnutls": { "version": "3.6.5", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
