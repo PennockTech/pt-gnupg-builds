@@ -13,6 +13,14 @@
       "params": [
         "--with-lib-path=#{prefix}/lib",
         "--with-include-path=#{prefix}/include"
+      ],
+      "sometimes": [
+        {
+          "boxes": ["trusty", "jessie"],
+          "env": [
+            "CC=c99"
+          ]
+        }
       ]
     },
     "gnutls": {

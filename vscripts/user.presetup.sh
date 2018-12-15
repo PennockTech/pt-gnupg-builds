@@ -10,13 +10,16 @@
 # We shouldn't need any of this supporting framework.  We have a short-lived OS
 # image, it's okay to litter Ruby "Everywhere".
 
+# We use --batch because Vagrant doesn't supply a tty during provision and some
+# versions of GnuPG require it.
+
 echo "$0: GnuPG SWDB and tarballs signing keys setup"
-gpg --import /vagrant/confs/pgp-swdb-signing-key.asc /vagrant/confs/tarballs-keyring.asc
+gpg --batch --import /vagrant/confs/pgp-swdb-signing-key.asc /vagrant/confs/tarballs-keyring.asc
 # We'd like to use:  gpg --tofu-policy good $swdb_key
 # but we don't yet know that we have a version of GnuPG good enough
 # so instead we hard-code as trusted the keys we verify against.
-printf "%s\n" "$pgp_ownertrusts" | xargs -n 1 | gpg --import-ownertrust
-gpg --check-trustdb
+printf "%s\n" "$pgp_ownertrusts" | xargs -n 1 | gpg --batch --import-ownertrust
+gpg --batch --check-trustdb
 
 mkdir -pv ~/src
 cd ~/src
@@ -26,5 +29,6 @@ if [ -f swdb.lst ] && [ -f swdb.lst.sig ]; then
 else
   curl -Ss --remote-name-all https://versions.gnupg.org/swdb.lst https://versions.gnupg.org/swdb.lst.sig
 fi
-gpg --trust-model direct --verify swdb.lst.sig
+# On stretch/GnuPG-2.1.18, there's no implicit file, so specify it explicitly.
+gpg --batch --trust-model direct --verify swdb.lst.sig swdb.lst
 

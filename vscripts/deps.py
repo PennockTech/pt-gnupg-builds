@@ -15,6 +15,7 @@ import collections
 import datetime
 import json
 import os
+import platform
 import subprocess
 import sys
 import tempfile
@@ -282,6 +283,15 @@ class BuildPlan(object):
       raise Error('missing configure information for {!r}'.format(product_name))
     params = self._normalize_list(self.configures['common_params'] + self.configures['packages'][product_name].get('params', []))
     envs = self._normalize_list(self.configures['packages'][product_name].get('env', []))
+    if 'sometimes' in self.configures['packages'][product_name]:
+      for chunk in self.configures['packages'][product_name]['sometimes']:
+        if 'boxes' not in chunk:
+          continue
+        if self.options.boxname not in chunk['boxes']:
+          print('\033[35mWe are {!r} and that is not found in boxes constraints for this chunk'.format(self.options.boxname), flush=True)
+          continue
+        params += self._normalize_list(chunk.get('params', []))
+        envs += self._normalize_list(chunk.get('env', []))
     print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product_name), flush=True)
     product = self.products[product_name]
     self.ensure_clear_for(product)
@@ -523,6 +533,9 @@ def _main(args, argv0):
   parser.add_argument('--run-inside',
                       action='store_true', default=False,
                       help='Only stuff we want inside the VMs')  # added as noop, but Vagrant uses, so is available as a guard
+  parser.add_argument('--boxname',
+                      type=str, default=os.environ.get('PT_BOX_NAME', platform.node()),
+                      help='Box name for conditional flags')
 
   options = parser.parse_args(args=args)
 
