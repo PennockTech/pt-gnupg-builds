@@ -125,6 +125,16 @@
         "for F in #{temp_tree}#{prefix}/bin/*; do ln -sv \"$(basename \"$F\")\" \"${F}2.2\"; done",
         "ln -sv gpg #{temp_tree}#{prefix}/bin/gpg2"
       ]
+    },
+    "gpgme": {
+      "env": [
+        "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig",
+        "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
+      ],
+      "params": [
+        "--with-libgpg-error-prefix=#{prefix}",
+        "--with-libassuan-prefix=#{prefix}"
+      ]
     }
   }
 }

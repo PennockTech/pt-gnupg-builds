@@ -8,8 +8,10 @@ libgpg-error  libksba
 libgpg-error  libassuan
 libgpg-error  pinentry
 libgpg-error  gnupg22
+libgpg-error  gpgme
 libgcrypt     gnupg22
 libksba       gnupg22
 libassuan     pinentry
 libassuan     gnupg22
+libassuan     gpgme
 pinentry      gnupg22
