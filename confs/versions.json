@@ -3,14 +3,14 @@
   "products": {
     "gmp": { "version": "6.1.2", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
     "nettle": { "version": "3.4.1", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
-    "gnutls": { "version": "3.6.5", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
+    "gnutls": { "version": "3.6.6", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
     "libksba": { "pkg_version": "6", "reason": "[1.3.5] bumped libgpg-error dependency to 1.35" },
     "pinentry": { "pkg_version": "6", "reason": "[1.1.0] bumped libgpg-error dependency to 1.35" },
     "libgcrypt": { "pkg_version": "2", "reason": "[1.8.4] bumped libgpg-error dependency to 1.35" },
     "libassuan": { "pkg_version": "2", "reason": "[2.5.2] bumped libgpg-error dependency to 1.35" },
-    "gnupg22": { "pkg_version": "2", "reason": "[2.2.12] bumped libgpg-error dependency to 1.35" },
+    "gnupg22": { "pkg_version": "2", "reason": "[2.2.12] bumped libgpg-error dependency to 1.35, bumped gnutls dependency to 3.6.6" },
     "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" }
   },
   "_final": "vim: set ft=json sw=2 :"
