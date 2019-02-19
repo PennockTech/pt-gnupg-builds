@@ -112,6 +112,20 @@ if [[ "${1:-}" == "--help" || "${1:-help}" == "help" ]]; then
   exit
 fi
 
+if [[ "$OSTYPE" != darwin* ]]; then
+  note "Not macOS, skipping sleep prevention"
+else
+  if [[ -z "${PT_CAFFEINATE_UNNEEDED:-}" ]]; then
+    note "about to re-exec self under caffeinate"
+    note " (builds can take a long time, avoid system sleep)"
+    export PT_CAFFEINATE_UNNEEDED=true
+    exec caffeinate "$0" "$@" || \
+      die "exec failed: $?"
+  else
+    note "now running with caffeinate (or inhibited)"
+  fi
+fi
+
 if [[ -n "${PT_SKIP_BUILD:-}" ]]; then
   note "local: skipping pre-build setup because PT_SKIP_BUILD set"
 else
