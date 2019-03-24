@@ -124,7 +124,12 @@
       ],
       "fixups": [
         "for F in #{temp_tree}#{prefix}/bin/*; do ln -sv \"$(basename \"$F\")\" \"${F}2.2\"; done",
-        "ln -sv gpg #{temp_tree}#{prefix}/bin/gpg2"
+        "ln -sv gpg #{temp_tree}#{prefix}/bin/gpg2",
+        "if test -f #{temp_tree}#{prefix}/libexec/gpg-wks-client && ! test -f #{temp_tree}#{prefix}/bin/gpg-wks-client; then ln -sv ../libexec/gpg-wks-client #{temp_tree}#{prefix}/bin/gpg-wks-client; fi"
+      ],
+      "comments": [
+        "version number fixups for preserving compatibility",
+        "gpg-wks-client into bin to reflect an intention for v2.3 already done on Windows as tool has become more useful"
       ]
     }
   }
