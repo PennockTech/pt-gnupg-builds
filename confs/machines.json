@@ -2,6 +2,8 @@
   {
     "name": "xenial",
     "box": "ubuntu/xenial64",
+    "box_version_pin": "20190215.0.0",
+    "comment": "release 20190325.0.0 missing uncommented deb-src in /etc/apt/sources.list, breaks apt build-dep",
     "base_script": "debian-family",
     "repo_endpoints": [
       {

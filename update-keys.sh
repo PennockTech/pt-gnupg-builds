@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/bash -eu
 #
 # To source this, set UPDATE_KEYS_SKIP_MAIN non-empty first, else
 # we will exit.  If the functions trigger an error, we will still
@@ -14,22 +14,32 @@ set -eu
 # And in fact zsh pipefail seems confused by our craziness; this is what
 # I get for not writing in Python or go.  Or assuming bash to start with.
 # Or rc.
+# Actually I now use bash so I can have comments in arrays for the *_keys variables
 [ -n "${BASH_VERSION:-}" ] && set -o pipefail
 [ -n "${ZSH_VERSION:-}" ] && setopt pipefail shwordsplit
 
 tags=""
-# Werner Koch for swdb
-swdb_keys='0x249B39D24F25E3B6'
+swdb_keys=(
+  'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6'  # Werner Koch
+  '5B80C5754298F0CB55D8ED6ABCEF7E294B092E28'  # Andre Heinecke
+  )
 swdb_file='confs/pgp-swdb-signing-key.asc'
 tags="${tags} swdb"
 
 # Tarballs for other software
-tarballs_keys='0x249B39D24F25E3B6 0x2071B08A33BD3F06 0x29EE58B996865171 0xF3599FF828C67298'
+tarballs_keys=(
+  'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6'  # Werner Koch
+  '031EC2536E580D8EA286A9F22071B08A33BD3F06'  # NIIBE Yutaka
+  '1F42418905D8206AA754CCDC29EE58B996865171'  # Nikos Mavrogiannopoulos (GnuTLS)
+  '343C2FF0FBEE5EC2EDBEF399F3599FF828C67298'  # Niels Möller
+  )
 tarballs_file='confs/tarballs-keyring.asc'
 tags="${tags} tarballs"
 
 # Apt Repo, for software I package myself
-apt_keys='0x8AC8EE39F0C68907'
+apt_keys=(
+  '5CAF09C9C79F88B5D526D4058AC8EE39F0C68907'  # PT Repository Mgmt
+  )
 apt_file='confs/apt-repo-keyring.asc'
 tags="${tags} apt"
 
@@ -51,7 +61,7 @@ set_for_tag() {
   # the vars it references are ours and presumed safe, so eval is safe.
   keysvar="${tag}_keys"
   filevar="${tag}_file"
-  eval "printf \"$(printf "tag='%s' keys='\${%s}' file='\${%s}';" \
+  eval "printf \"$(printf "tag='%s' keys='\${%s[*]}' file='\${%s}';" \
     "${tag}" "${keysvar}" "${filevar}")\n\""
 }
 

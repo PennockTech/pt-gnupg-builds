@@ -4,6 +4,8 @@
 
 class PTBuild
   attr_reader :name, :box, :base_script, :repo
+  @@optional_fields = :box_version_pin, :comment
+  attr_reader *@@optional_fields
   def initialize(name, box, base_script, repo)
     @name = name
     @box = box  # https://app.vagrantup.com/boxes/search
@@ -17,7 +19,15 @@ pt_seen_machines = Set.new
 TopDir = %x(git rev-parse --show-toplevel).chomp
 JSON.load(open(TopDir + '/confs/machines.json')).each do |m|
   raise "duplicate definition for #{m['name']}" if pt_seen_machines.include?(m['name'])
-  PTMACHINES << PTBuild.new(m['name'], m['box'], m['base_script'], m['repo'])
+  ptb = PTBuild.new(m['name'], m['box'], m['base_script'], m['repo'])
+  PTBuild.class_variable_get(:@@optional_fields).each { |optional|
+    if m.has_key?(optional.to_s)
+      atattr = '@' + optional.to_s
+      #puts "OPTIONAL on #{m['name']}: SET #{optional} TO: #{m[optional.to_s]}"
+      ptb.instance_variable_set(atattr, m[optional.to_s])
+    end
+  }
+  PTMACHINES << ptb
   pt_seen_machines.add(m['name'])
 end
 
@@ -65,6 +75,10 @@ Vagrant.configure("2") do |config|
 
     config.vm.define ptb.name, autostart: false do |node|
       node.vm.box = ptb.box
+
+      unless ptb.box_version_pin.nil?
+        node.vm.box_version = ptb.box_version_pin
+      end
 
       # only ever _add_ files to /in, never delete; assume large binaries which never have
       # small deltas.  Copy only on demand, don't stomp on things mid-script.
