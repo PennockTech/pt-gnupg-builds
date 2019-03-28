@@ -1,4 +1,5 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
+set -eu
 #
 # This is run locally outside the VM.
 # We're not pure-posix-sh, we use 'local' in functions.
@@ -18,6 +19,20 @@ readonly ControlHelp='Env vars:
 progname="$(basename -s .sh "$0")"
 note() { printf '%s: %s\n' "$progname" "$*"; }
 die() { note >&2 "$@"; exit 1; }
+
+if [[ ${BASH_VERSINFO[0]} -ge 5 ]] || [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -ge 2 ]]; then
+  : # we have associative arrays, hurrah!
+else
+  if [[ "$BASH" == "/bin/bash" ]] && [[ -x /usr/local/bin/bash ]]; then
+    note "trying to get a newer bash"
+    exec /usr/local/bin/bash "$0" "$@" || die "failed to re-exec with newer bash"
+  else
+    die "this bash is too old (need 4.2+, have $BASH_VERSION)"
+  fi
+fi
+
+declare -A deferred_deploy_commands
+declare -A deferred_deploy_targets
 
 build_one() {
   local -r machine="${1:-need a machine name}"
@@ -67,8 +82,10 @@ deploy_one() {
     return 0
   fi
 
+  local bs deploy can_batch cmdline ev previous
   bs="$(jq -r --arg m "$machine" < confs/machines.json '.[]|select(.name==$m).base_script')"
   deploy="./os/deploy.${bs:-default}.sh"
+  can_batch="./os/deploy.${bs:-default}.can-batch"
 
   if [[ ! -f "$deploy" ]]; then
     note >&2 "[$machine] no deploy script (wanted: '${deploy}')"
@@ -78,6 +95,16 @@ deploy_one() {
   cmdline=("$deploy" "$machine")
   if [[ -n "${PT_INITIAL_DEPLOY:-}" ]]; then
     cmdline+=('-initial')
+  fi
+  if [[ -f "$can_batch" ]]; then
+    # This is why we have the version re-exec song-and-dance.
+    previous="${deferred_deploy_commands[${bs:-default}]:-}"
+    if [[ -n "$previous" && "$previous" != "$deploy" ]]; then
+      die "mismatch in base command for '${bs:-default}': '$previous' vs '$deploy'"
+    fi
+    deferred_deploy_commands[${bs:-default}]="$deploy"
+    deferred_deploy_targets[${bs:-default}]+=" ${machine}"
+    cmdline+=('-copy-only')
   fi
 
   set +e
@@ -91,7 +118,23 @@ deploy_one() {
     *) note >&2 "[$machine] deploy failed exiting $ev"; exit $ev ;;
   esac
 
-  ./tools/caching_invalidate "$machine"
+  if [[ ! -f "$can_batch" ]]; then
+    ./tools/caching_invalidate "$machine"
+  fi
+}
+
+deploy_deferred() {
+  # the targets contain whitespace which we should split on
+  # shellcheck disable=SC2068
+  if [[ "${#deferred_deploy_targets[@]}" -lt 1 ]]; then
+    note "no deferred deploys"
+    return
+  fi
+  local group
+  for group in "${!deferred_deploy_commands[@]}"; do
+    "${deferred_deploy_commands[$group]}" -deferred ${deferred_deploy_targets[@]}
+  done
+  ./tools/caching_invalidate ${deferred_deploy_targets[@]}
 }
 
 if [[ -f site-local.env ]]; then
@@ -106,6 +149,8 @@ if [[ "${1:-}" == "--help" || "${1:-help}" == "help" ]]; then
   note "invoke with 'all' or a list of machine-names to build"
   note "environment variables control more"
   note ''
+  # we want to not preserve newlines, so not "$(...)" for this jq
+  # shellcheck disable=SC2046
   note "available boxes ['all']:" $(jq -r < confs/machines.json '.[].name')
   note "consider: vagrant box update"
   note "$ControlHelp"
@@ -136,6 +181,8 @@ else
 fi
 
 [[ "$1" == local ]] && exit 0
+# We want to split on whitespace
+# shellcheck disable=SC2046
 [[ "$1" == all ]] && set $(jq -r < confs/machines.json '.[].name')
 
 for machine
@@ -149,7 +196,7 @@ if [[ -z "${PT_SKIP_DEPLOY:-}" && -z "${PT_SKIP_GPGDELAY_PROMPT:-}" ]]; then
   echo "This will prompt for a PGP passphrase, if key is so protected."
   echo "That has a timeout.  So be ready."
   echo ""
-  read -p 'Hit enter when ready ...' ok
+  read -r -p 'Hit enter when ready ...'
 fi
 [[ -f "$HOME/.aws/config" ]] || die "missing ~/.aws/config"
 
@@ -163,5 +210,6 @@ for machine
 do
   deploy_one "$machine"
 done
+deploy_deferred
 
 # vim: set sw=2 et :
