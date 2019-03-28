@@ -109,6 +109,7 @@ if [[ "${1:-}" == "--help" || "${1:-help}" == "help" ]]; then
   note "available boxes ['all']:" $(jq -r < confs/machines.json '.[].name')
   note "consider: vagrant box update"
   note "$ControlHelp"
+  [[ -f "$HOME/.aws/config" ]] || die "missing ~/.aws/config"
   exit
 fi
 

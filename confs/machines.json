@@ -39,6 +39,8 @@
   {
     "name": "bionic",
     "box": "ubuntu/bionic64",
+    "box_version_pin": "20190212.1.0",
+    "comment": "release 20190322.0.0 missing uncommented deb-src in /etc/apt/sources.list, breaks apt build-dep",
     "base_script": "debian-family",
     "repo_endpoints": [
       {
