@@ -16,6 +16,57 @@
       }
     ]
   },
+
+  {
+    "name": "stretch",
+    "box": "debian/stretch64",
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/debian/stretch"
+      },
+      {
+        "spec": "s3:pennocktech:pt/debian/stretch",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
+  },
+
+  {
+    "name": "bionic",
+    "box": "ubuntu/bionic64",
+    "box_version_pin": "20190212.1.0",
+    "comment": "release 20190322.0.0 missing uncommented deb-src in /etc/apt/sources.list, breaks apt build-dep",
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/ubuntu/bionic"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/bionic",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
+  },
+
+  {
+    "name": "jessie",
+    "box": "debian/jessie64",
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/debian/jessie"
+      },
+      {
+        "spec": "s3:pennocktech:pt/debian/jessie",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
+  },
+
   {
     "name": "trusty",
     "box": "ubuntu/trusty64",
@@ -35,52 +86,6 @@
         "aws_cloudfront": "EFI5I7XJ5E6BC"
       }
     ]
-  },
-  {
-    "name": "bionic",
-    "box": "ubuntu/bionic64",
-    "box_version_pin": "20190212.1.0",
-    "comment": "release 20190322.0.0 missing uncommented deb-src in /etc/apt/sources.list, breaks apt build-dep",
-    "base_script": "debian-family",
-    "repo_endpoints": [
-      {
-        "spec": "pt/ubuntu/bionic"
-      },
-      {
-        "spec": "s3:pennocktech:pt/ubuntu/bionic",
-        "aws_profile": "pennocktech",
-        "aws_cloudfront": "EFI5I7XJ5E6BC"
-      }
-    ]
-  },
-  {
-    "name": "jessie",
-    "box": "debian/jessie64",
-    "base_script": "debian-family",
-    "repo_endpoints": [
-      {
-        "spec": "pt/debian/jessie"
-      },
-      {
-        "spec": "s3:pennocktech:pt/debian/jessie",
-        "aws_profile": "pennocktech",
-        "aws_cloudfront": "EFI5I7XJ5E6BC"
-      }
-    ]
-  },
-  {
-    "name": "stretch",
-    "box": "debian/stretch64",
-    "base_script": "debian-family",
-    "repo_endpoints": [
-      {
-        "spec": "pt/debian/stretch"
-      },
-      {
-        "spec": "s3:pennocktech:pt/debian/stretch",
-        "aws_profile": "pennocktech",
-        "aws_cloudfront": "EFI5I7XJ5E6BC"
-      }
-    ]
   }
+
 ]

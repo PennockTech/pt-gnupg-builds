@@ -124,6 +124,9 @@ deploy_one() {
 }
 
 deploy_deferred() {
+  if [[ -n "${PT_SKIP_DEPLOY:-}" ]]; then
+    return
+  fi
   # the targets contain whitespace which we should split on
   # shellcheck disable=SC2068
   if [[ "${#deferred_deploy_targets[@]}" -lt 1 ]]; then
