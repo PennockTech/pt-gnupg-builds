@@ -59,8 +59,18 @@ pt_apt_get install libopts25 libunbound2 libsecret-1-0
 # Doing this as the user is "not sane", alas.  Could use rbenv etc, but
 # that's a lot of framework and interpreter compilation when we just want
 # fpm as a means to an end.
-echo "$0: gem install fpm"
-gem install --no-ri --no-rdoc fpm
+#
+# nb 2019-05: fpm now requires ruby2, trusty is 1.9.1 by default; also
+#             Gem::Version not yet part of stdlib there.
+if ruby -e 'if !RUBY_VERSION.start_with?("1."); then exit(1); end'; then
+  echo "$0: installing ruby2.0 on ancient system"
+  pt_apt_get install ruby2.0
+  gem_cmd='gem2.0'
+else
+  gem_cmd='gem'
+fi
+echo "$0: $gem_cmd install fpm"
+"$gem_cmd" install --no-ri --no-rdoc fpm
 
 echo "$0: pip install requests"
 pip install requests
