@@ -34,6 +34,9 @@ fi
 declare -A deferred_deploy_commands
 declare -A deferred_deploy_targets
 
+# Bash bug IMO: ${#assoc_array[@]} triggers -u unbound if no elements
+deferred_deploy_commands[dummy]='will_be_unset'
+
 is_valid_machine() {
   local -r machine="${1:-need a machine name}"
   jq --arg want "$machine" -er < confs/machines.json 'isempty(.[] | select(.name == $want)) | not' >/dev/null
@@ -140,13 +143,14 @@ deploy_deferred() {
   fi
   # the targets contain whitespace which we should split on
   # shellcheck disable=SC2068
-  if [[ "${#deferred_deploy_targets[@]}" -lt 1 ]]; then
+  if [[ "${#deferred_deploy_targets[@]}" -le 1 ]]; then
     note "no deferred deploys"
     return
   fi
+  unset deferred_deploy_targets[dummy]
   local group
   for group in "${!deferred_deploy_commands[@]}"; do
-    "${deferred_deploy_commands[$group]}" -deferred ${deferred_deploy_targets[@]}
+    "${deferred_deploy_commands[$group]}" -deferred ${deferred_deploy_targets[$group]}
   done
   ./tools/caching_invalidate ${deferred_deploy_targets[@]}
 }
