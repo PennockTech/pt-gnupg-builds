@@ -64,13 +64,25 @@ pt_apt_get install libopts25 libunbound2 libsecret-1-0
 #             Gem::Version not yet part of stdlib there.
 if ruby -e 'if !RUBY_VERSION.start_with?("1."); then exit(1); end'; then
   echo "$0: installing ruby2.0 on ancient system"
-  pt_apt_get install ruby2.0
-  gem_cmd='gem2.0'
+  #
+  # ouch; instead of:
+  ##pt_apt_get install ruby2.0
+  ##gem_cmd='gem2.0'
+  #
+  # we hit gem2.0 "uninitialized constant Gem::SafeYAML"
+  # because gem2.0 triggers
+  # which leads to <https://www.mail-archive.com/search?l=ubuntu-bugs@lists.ubuntu.com&q=subject:%22%5C%5BBug+1777174%5C%5D+Re%5C%3A+2.0.0.484%5C-1ubuntu2.10+triggers+uninitialized+constant+Gem%5C%3A%5C%3ASafeYAML+on+calling+gem2.0+install%22&o=newest&f=1>
+  #
+  pt_apt_get install ruby2.0=2.0.0.484-1ubuntu2 libruby2.0=2.0.0.484-1ubuntu2 libffi-dev ruby2.0-dev build-essential
+  ruby2.0 -S gem install psych --version 2.0.17
+  pt_apt_get install ruby2.0 libruby2.0
+  gem_cmd='ruby2.0 -r yaml -r rubygems/safe_yaml -S gem2.0'
+  #
 else
   gem_cmd='gem'
 fi
 echo "$0: $gem_cmd install fpm"
-"$gem_cmd" install --no-ri --no-rdoc fpm
+$gem_cmd install --no-ri --no-rdoc fpm
 
 echo "$0: pip install requests"
 pip install requests
