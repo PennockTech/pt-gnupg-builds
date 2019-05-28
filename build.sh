@@ -34,10 +34,18 @@ fi
 declare -A deferred_deploy_commands
 declare -A deferred_deploy_targets
 
+is_valid_machine() {
+  local -r machine="${1:-need a machine name}"
+  jq --arg want "$machine" -er < confs/machines.json 'isempty(.[] | select(.name == $want)) | not' >/dev/null
+}
+
 build_one() {
   local -r machine="${1:-need a machine name}"
   local -r outputs="${2:-need an outputs dir}"
   local -r sshconf="./tmp.ssh-config.$machine"
+  if ! is_valid_machine "$machine"; then
+    die "invalid machine name: $machine"
+  fi
   if [[ -n "${PT_SKIP_BUILD:-}" ]]; then
     note "[$machine] skipping build because PT_SKIP_BUILD set"
     return 0
@@ -77,6 +85,9 @@ deploy_one() {
   # rather than dispatching through our aws shim.  But we can let the tool know
   # how to get credentials _from_ aws-vault.
   local -r machine="${1:-need a machine name}"
+  if ! is_valid_machine "$machine"; then
+    die "invalid machine name: $machine"
+  fi
   if [[ -n "${PT_SKIP_DEPLOY:-}" ]]; then
     note "[$machine] skipping deploy-to-reposerver because PT_SKIP_DEPLOY set"
     return 0
