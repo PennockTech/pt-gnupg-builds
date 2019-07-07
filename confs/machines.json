@@ -3,7 +3,16 @@
     "name": "disco",
     "docker": ["pdp-disco", "ubuntu:disco-20190614", "ubuntu:disco"],
     "base_script": "debian-family",
-    "comment": "currently a dummy, testing non-vagrant builds"
+    "repo_endpoints": [
+      {
+        "spec": "pt/ubuntu/disco"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/disco",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
   },
   {
     "name": "xenial",
