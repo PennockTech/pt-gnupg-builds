@@ -18,6 +18,7 @@ PTMACHINES = []
 pt_seen_machines = Set.new
 TopDir = %x(git rev-parse --show-toplevel).chomp
 JSON.load(open(TopDir + '/confs/machines.json')).each do |m|
+  m.has_key?('box') or next   # box for Vagrant, other keys for other implementations
   raise "duplicate definition for #{m['name']}" if pt_seen_machines.include?(m['name'])
   ptb = PTBuild.new(m['name'], m['box'], m['base_script'], m['repo'])
   PTBuild.class_variable_get(:@@optional_fields).each { |optional|

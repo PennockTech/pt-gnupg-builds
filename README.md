@@ -16,7 +16,9 @@ install into that prefix.  This includes other major projects such as GnuTLS.
 Building
 --------
 
-We're using Vagrant to build packages.
+We're using Vagrant and/or Docker to build packages.
+Originally we used Vagrant and much of the design assumed that.
+We're switching to Docker.  There may be some rough edges.
 
 First create `site-local.env`; things will work without it, but you might not
 like some details embedded in packages and their names.  It should look
@@ -33,13 +35,15 @@ You will almost certainly want to change values in `confs/deploy.sh`; if you
 instead export `PT_SKIP_DEPLOY=true` in environ before building, then you can
 build packages without trying to put them live on the repo server.
 
+### Vagrant
+
 ```console
 % vagrant status
 ## see list of machines, typically named for OS
-% ./build.sh xenial
+% ./build-vagrant.sh xenial
 ## if problems: edit, fix, then:
-% PT_RESUME_BUILD=t ./build.sh xenial
-## and repeat until build.sh might work.
+% PT_RESUME_BUILD=t ./build-vagrant.sh xenial
+## and repeat until build-vagrant.sh might work.
 ```
 
 The contents of the `./in` directory are unidirectionally rsync'd towards
@@ -54,6 +58,21 @@ You can sync more assets in with `vagrant rsync $machine_name`.
 Unless disabled via env flag, the build script will invoke a deploy script for
 each machine.  The included deploy scripts assume use of `aptly` for repo
 management and are tuned via `confs/deploy.sh`.
+
+### Docker
+
+```console
+% ./build-docker.rb disco
+```
+
+There is no framework for resuming builds, but you can manually invoke Docker
+with the given command-lines but no command to run inside the container, then
+manually run the setup/build command-line.
+
+For Docker, `./in/` and `./out/${BUILD}/` are volume bind-mounted into the
+container.
+
+For Docker, there is not yet support for automatic deploying.
 
 
 Updating
@@ -89,7 +108,7 @@ jq '.skipContentsPublishing=true' .aptly.conf > x && mv x .aptly.conf
 and then here:
 
 ```
-PT_INITIAL_DEPLOY=t ./build.sh xenial
+PT_INITIAL_DEPLOY=t ./build-vagrant.sh xenial
 ```
 
 Yields: `deb https://public-packages.pennock.tech/pt/ubuntu/xenial/ xenial main`

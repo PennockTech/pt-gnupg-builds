@@ -18,12 +18,19 @@ DOWNLOADS_DIR="${script_dir:?}/../in"
 echo "$0: GnuPG SWDB and tarballs signing keys setup"
 gpg --import "${CONFS_DIR:?}/pgp-swdb-signing-key.asc" "${CONFS_DIR:?}/tarballs-keyring.asc"
 
+if stat --version | grep -qs coreutils
+then
+  stat_ctime() { st_ctime="$(stat -c %Z "${1:?}")"; }
+else
+  stat_ctime() { eval "$(stat -s "${1:?}")"; }
+fi
+
 mkdir -pv "${DOWNLOADS_DIR:?}"
 cd "${DOWNLOADS_DIR:?}"
 echo "Fetching SWDB and verifying"
 need_fetch=true
 if [ -f swdb.lst ] && [ -f swdb.lst.sig ]; then
-  eval "$(stat -s swdb.lst)"
+  stat_ctime swdb.lst
   if expr >/dev/null $st_ctime \> \( $(date +%s) - 7200 \) ; then
     echo "  ... have a recent copy"
     need_fetch=false

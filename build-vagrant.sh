@@ -39,7 +39,7 @@ deferred_deploy_commands[dummy]='will_be_unset'
 
 is_valid_machine() {
   local -r machine="${1:-need a machine name}"
-  jq --arg want "$machine" -er < confs/machines.json 'isempty(.[] | select(.name == $want)) | not' >/dev/null
+  jq --arg want "$machine" -er < confs/machines.json 'isempty(.[] | select(has("box")) | select(.name == $want)) | not' >/dev/null
 }
 
 build_one() {
@@ -97,7 +97,7 @@ deploy_one() {
   fi
 
   local bs deploy can_batch cmdline ev previous
-  bs="$(jq -r --arg m "$machine" < confs/machines.json '.[]|select(.name==$m).base_script')"
+  bs="$(jq -r --arg m "$machine" < confs/machines.json '.[]|select(has("box"))|select(.name==$m).base_script')"
   deploy="./os/deploy.${bs:-default}.sh"
   can_batch="./os/deploy.${bs:-default}.can-batch"
 
@@ -169,7 +169,7 @@ if [[ "${1:-}" == "--help" || "${1:-help}" == "help" ]]; then
   note ''
   # we want to not preserve newlines, so not "$(...)" for this jq
   # shellcheck disable=SC2046
-  note "available boxes ['all']:" $(jq -r < confs/machines.json '.[].name')
+  note "available boxes ['all']:" $(jq -r < confs/machines.json '.[]|select(has("box"))|.name')
   note "consider: vagrant box update"
   note "$ControlHelp"
   [[ -f "$HOME/.aws/config" ]] || die "missing ~/.aws/config"
@@ -201,7 +201,7 @@ fi
 [[ "$1" == local ]] && exit 0
 # We want to split on whitespace
 # shellcheck disable=SC2046
-[[ "$1" == all ]] && set $(jq -r < confs/machines.json '.[].name')
+[[ "$1" == all ]] && set $(jq -r < confs/machines.json '.[]|select(has("box"))|.name')
 
 for machine
 do

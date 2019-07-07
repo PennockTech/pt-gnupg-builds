@@ -40,7 +40,7 @@
       "os-deps": {
         "debian-family": [
           "libopts25",
-          "libunbound2"
+          "libunbound2 | libunbound8"
         ]
       }
     },

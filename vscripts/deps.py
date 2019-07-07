@@ -159,6 +159,13 @@ class BuildPlan(object):
       raise Error('Missing key "products" in {!r}'.format(vfn))
     if 'overrides' not in self.other_versions:
       self.other_versions['overrides'] = {}
+    else:
+      for pname in self.other_versions['overrides']:
+        if 'build_version' not in self.other_versions['overrides'][pname]:
+          continue
+        if pname not in self.products:
+          raise Error('Unknown product to override: {!r}'.format(pname))
+        self.products[pname].ver = self.other_versions['overrides'][pname]['build_version']
 
   def process_configures(self, cfn=None):
     if cfn is None:

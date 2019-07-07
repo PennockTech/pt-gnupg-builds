@@ -4,3 +4,4 @@
 /out/
 /tmp.ssh-config.*
 /site-local.env
+/local.todo

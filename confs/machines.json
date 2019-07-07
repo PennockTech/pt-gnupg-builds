@@ -1,5 +1,11 @@
 [
   {
+    "name": "disco",
+    "docker": ["pdp-disco", "ubuntu:disco-20190614", "ubuntu:disco"],
+    "base_script": "debian-family",
+    "comment": "currently a dummy, testing non-vagrant builds"
+  },
+  {
     "name": "xenial",
     "box": "ubuntu/xenial64",
     "box_version_pin": "20190215.0.0",

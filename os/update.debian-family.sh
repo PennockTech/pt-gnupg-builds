@@ -7,7 +7,11 @@ pt_apt_get() { apt-get -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Optio
 echo "$0: basic system package updates"
 rm -f /etc/timezone
 echo UTC > /etc/timezone
-dpkg-reconfigure tzdata
+if dpkg -s tzdata >/dev/null 2>&1; then
+  dpkg-reconfigure tzdata
+else
+  pt_apt_get install tzdata
+fi
 unset TZ
 
 # If we have override packages for this OS for anything installed as a
@@ -33,7 +37,7 @@ echo "$0: apt packages for building GnuPG and friends"
 # For when we support getting "current versions" direct from repo:
 pt_apt_get install apt-transport-https
 
-pt_apt_get install build-essential
+pt_apt_get install build-essential lsb-release
 case $(lsb_release -sc) in
   trusty)
     pt_apt_get install automake
@@ -53,7 +57,10 @@ pt_apt_get install ruby ruby-dev python3 git curl python-pip python3-pip
 
 # gnutls aux tools: libopts25 libunbound2
 # pinentry: libsecret-1-0
-pt_apt_get install libopts25 libunbound2 libsecret-1-0
+unbound=libunbound2
+if apt-cache show libunbound8 >/dev/null 2>&1; then unbound=libunbound8; fi
+pt_apt_get install libopts25 $unbound libsecret-1-0
+unset unbound
 
 # Ideally we'd not use root for fpm/ruby but it's a short-lived OS image.
 # Doing this as the user is "not sane", alas.  Could use rbenv etc, but
@@ -84,20 +91,24 @@ fi
 echo "$0: $gem_cmd install fpm"
 $gem_cmd install --no-ri --no-rdoc fpm
 
-echo "$0: pip install requests"
-pip install requests
+pip_cmd=pip
+if which pip3 >/dev/null 2>&1; then pip_cmd=pip3; fi
+echo "$0: $pip_cmd install requests"
+$pip_cmd install requests
 
 echo "$0: OS-agnostic package installer wrapper"
+sudo='sudo'
+if ! which sudo >/dev/null 2>&1; then sudo=''; fi
 mkdir -pv /usr/local/bin
-cat > /usr/local/bin/pt-build-pkg-install <<'EOBPI'
+cat > /usr/local/bin/pt-build-pkg-install <<EOBPI
 #!/bin/sh
-exec sudo dpkg -i "$@"
+exec $sudo dpkg -i "\$@"
 EOBPI
 chmod 755 /usr/local/bin/pt-build-pkg-install
-cat > /usr/local/bin/pt-build-pkg-uninstall <<'EOBPU'
+cat > /usr/local/bin/pt-build-pkg-uninstall <<EOBPU
 #!/bin/sh
-sudo dpkg -r "$@"
-sudo dpkg -P "$@"
+sudo $dpkg -r "\$@"
+sudo $dpkg -P "\$@"
 EOBPU
 chmod 755 /usr/local/bin/pt-build-pkg-uninstall
 
@@ -105,4 +116,5 @@ chmod 755 /usr/local/bin/pt-build-pkg-uninstall
 # If we ever have non-debian stuff, we'll probably want to move stuff after
 # here out to a separate root-run setup stage.
 mkdir -pv /out
-chown -R "${SUDO_UID:-vagrant}:${SUDO_GID:-vagrant}" /out
+# Let the chown fail, as it will in docker as root
+chown -R "${SUDO_UID:-vagrant}:${SUDO_GID:-vagrant}" /out || true
