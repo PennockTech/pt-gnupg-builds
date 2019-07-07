@@ -107,8 +107,8 @@ EOBPI
 chmod 755 /usr/local/bin/pt-build-pkg-install
 cat > /usr/local/bin/pt-build-pkg-uninstall <<EOBPU
 #!/bin/sh
-sudo $dpkg -r "\$@"
-sudo $dpkg -P "\$@"
+$sudo dpkg -r "\$@"
+$sudo dpkg -P "\$@"
 EOBPU
 chmod 755 /usr/local/bin/pt-build-pkg-uninstall
 

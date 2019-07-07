@@ -18,6 +18,21 @@ def env_want?(varname)
   return !value.empty?
 end
 
+def source_site_env
+  previous = Hash[`bash -c 'printenv --null'`.split("\x00").map{ |kv| kv.split('=', 2) }]
+  `bash -c '. ./site-local.env; printenv --null'`.split("\x00").each{ |kv|
+    k, v = kv.split('=', 2)
+    if !previous.has_key?(k) || previous[k] != v
+      case k
+      when 'SHLVL'
+      else
+        ENV[k] = v
+      end
+    end
+  }
+end
+source_site_env
+
 # Passed onto the actual build invocation.
 $vbuild_env = {
   # Canonical would be: https://www.gnupg.org/ftp/gcrypt/
