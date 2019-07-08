@@ -6,10 +6,13 @@ require 'set'
 
 options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: DockerTargets [<specific-target> ...]"
+  opts.banner = "Usage: build-docker [<specific-target> ...]"
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     options[:verbose] = v
+  end
+  opts.on("-l", "--list", "List known targets and exit") do |v|
+    options[:list] = true
   end
 end.parse!
 
@@ -180,17 +183,11 @@ def run_container(wanted_name)
 
 end
 
-def deploy_one(build_name)
-  if env_want?('PT_SKIP_DEPLOY')
-    puts "[#{build_name}] skipping deploy-to-reposerver because PT_SKIP_DEPLOY set"
-    return
+if options[:list]
+  pt_seen_containers.sort.each do |c|
+    puts c
   end
-  raise "unimplemented"
-  # FIXME FIXME: for now, can _deploy_ with the shell script.
-end
-
-def deploy_deferred
-  raise "unimplemented"
+  exit 0
 end
 
 ARGV.concat(pt_seen_containers.sort) if ARGV.length == 0
@@ -202,23 +199,9 @@ ARGV.each do |name|
   run_container name
 end
 
-if !env_want?('PT_SKIP_DEPLOY') && !env_want?('PT_SKIP_GPGDELAY_PROMPT')
-  puts """
-Done with any builds, going to copy/deploy packages into repos.
-This will prompt for a PGP passphrase, if key is so protected.
+puts """
+Done with any builds, invoke publish-packages.rb to copy files to repos.
+That will prompt for a PGP passphrase, if key is so protected.
 That has a timeout.  So be ready.
 
 """
-  print 'Hit enter when ready ...'
-  $stdout.flush
-  STDIN.gets
-end
-
-if !Pathname('~/.aws/config').expand_path.exist?
-  #raise "missing ~/.aws/config"
-end
-
-ARGV.each do |name|
-  deploy_one name
-end
-deploy_deferred
