@@ -2,7 +2,7 @@
   "about": "These are the third-party products which we depend upon",
   "products": {
     "gmp": { "version": "6.1.2", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
-    "nettle": { "version": "3.4.1", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
+    "nettle": { "version": "3.5.1", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
     "gnutls": { "version": "3.6.8", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
@@ -11,7 +11,8 @@
     "pinentry": { "pkg_version": "8", "reason": "[1.1.0] bumped libgpg-error dependency to 1.36" },
     "libgcrypt": { "pkg_version": "3", "reason": "[1.8.4] bumped libgpg-error dependency to 1.36" },
     "libassuan": { "pkg_version": "2", "reason": "[2.5.3] bumped libgpg-error dependency to 1.36" },
-    "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" }
+    "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" },
+    "gnutls": { "pkg_version": "2", "reason": "[3.6.8] bumped netle dependency to 3.5.1" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }
