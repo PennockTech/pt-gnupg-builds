@@ -37,12 +37,15 @@ build packages without trying to put them live on the repo server.
 
 ### Vagrant
 
+This is going away.  I don't need a new kernel each time I build and it's
+easier to pre-cache userlands with installed packages in Docker.
+
 ```console
 % vagrant status
 ## see list of machines, typically named for OS
-% ./build-vagrant.sh xenial
+% tools/deprecated.build-vagrant.sh xenial
 ## if problems: edit, fix, then:
-% PT_RESUME_BUILD=t ./build-vagrant.sh xenial
+% PT_RESUME_BUILD=t tools/deprecated.build-vagrant.sh xenial
 ## and repeat until build-vagrant.sh might work.
 ```
 
@@ -62,7 +65,7 @@ management and are tuned via `confs/deploy.sh`.
 ### Docker
 
 ```console
-% ./build-docker.rb disco
+% ./tools/build-docker.rb disco
 ```
 
 There is no framework for resuming builds, but you can manually invoke Docker
