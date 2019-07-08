@@ -65,7 +65,9 @@ management and are tuned via `confs/deploy.sh`.
 ### Docker
 
 ```console
+% ./tools/local-fetch.sh
 % ./tools/build-docker.rb disco
+% ./tools/publish-packages.rb disco
 ```
 
 There is no framework for resuming builds, but you can manually invoke Docker
@@ -74,8 +76,6 @@ manually run the setup/build command-line.
 
 For Docker, `./in/` and `./out/${BUILD}/` are volume bind-mounted into the
 container.
-
-For Docker, there is not yet support for automatic deploying.
 
 
 Updating
@@ -86,6 +86,9 @@ Updating
   scripts).  Do not add the repo field until the initial run is complete.
 * A new version of GnuPG software should come automatically from `swdb.lst`
 * A new version of non-GnuPG dependent software goes in `confs/versions.json`
+  + A non-swdb version override for GnuPG can also go in here; in the
+    overrides section, keyed by the package basename, include `build_version`
+    in the option keys, with a value of the overridden version.
 * Changing how a package is built goes in `confs/configures.json`
 * Adding an "A needed for B" dependency ordering goes in the
   `confs/dependencies.tsort-in` file (use `column -t` for formatting, `tsort`
@@ -93,6 +96,7 @@ Updating
 * The only items built are those in the dependencies file.
 * Changes in PGP signing keys will need to be reflected _both_ in the
   key-dumps in `confs/` and in `pgp_ownertrusts` defined in `confs/params.env`
+  + `./tools/update-keys.sh` might help with some of that
 
 
 Adding new repo with aptly
@@ -111,7 +115,7 @@ jq '.skipContentsPublishing=true' .aptly.conf > x && mv x .aptly.conf
 and then here:
 
 ```
-PT_INITIAL_DEPLOY=t ./build-vagrant.sh xenial
+./tools/publish-packages.rb --initial xenial
 ```
 
 Yields: `deb https://public-packages.pennock.tech/pt/ubuntu/xenial/ xenial main`
