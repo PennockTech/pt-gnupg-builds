@@ -122,6 +122,11 @@
         "--with-ksba-prefix=#{prefix}",
         "--with-npth-prefix=#{prefix}"
       ],
+      "os-deps": {
+        "debian-family": [
+          "sqlite3"
+        ]
+      },
       "fixups": [
         "for F in #{temp_tree}#{prefix}/bin/*; do ln -sv \"$(basename \"$F\")\" \"${F}2.2\"; done",
         "ln -sv gpg #{temp_tree}#{prefix}/bin/gpg2",
@@ -129,7 +134,8 @@
       ],
       "comments": [
         "version number fixups for preserving compatibility",
-        "gpg-wks-client into bin to reflect an intention for v2.3 already done on Windows as tool has become more useful"
+        "gpg-wks-client into bin to reflect an intention for v2.3 already done on Windows as tool has become more useful",
+        "We _should_ depend on libsqlite3-0 and libreadlineN but N varies across supported platforms; sqlite3 pulls them all in at minimal pain, sorry"
       ]
     }
   }
