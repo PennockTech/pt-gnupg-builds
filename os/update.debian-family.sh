@@ -7,30 +7,48 @@ pt_apt_get() { apt-get -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Optio
 echo "$0: basic system package updates"
 rm -f /etc/timezone
 echo UTC > /etc/timezone
+want_install_tzdata=false
 if dpkg -s tzdata >/dev/null 2>&1; then
   dpkg-reconfigure tzdata
 else
-  pt_apt_get install tzdata
+  want_install_tzdata=true
 fi
 unset TZ
-
-# If we have override packages for this OS for anything installed as a
-# build-dep below then we'll need the key trusted early.
-# (This bit me with `jq` on trusty).
-apt-key add /vagrant/confs/apt-repo-keyring.asc
 
 if [ -f /tmp/done.gnupg.baseupdate ]; then
   echo "$0: skipping core update/upgrade"
 else
+  if ! grep -q '^deb-src' /etc/apt/sources.list; then
+    sed -n 's/^deb /deb-src /p' < /etc/apt/sources.list > /etc/apt/sources.list.d/std-sources.list
+  fi
+
   pt_apt_get update
   # no ability to sanely replace kernels, while Vagrant should have gotten a
   # recent enough system for us, that for our purposes whatever kernel
   # we have is fine.  So stick to `upgrade` not `dist-upgrade`
   pt_apt_get upgrade
   pt_apt_get autoremove
+  if $want_install_tzdata; then
+    pt_apt_get install tzdata
+  fi
   dpkg -l | grep '^rc' | awk '{ print $2 }' | xargs apt-get --assume-yes purge
   date > /tmp/done.gnupg.baseupdate
 fi
+
+### AT THIS POINT: we can install extra packages
+# In order to use `apt-key add` we need gnupg* installed.
+if which gpg >/dev/null 2>&1 || which gpg2 >/dev/null 2>&1; then
+  true
+else
+  pt_apt_get install gnupg2
+fi
+
+### THIS WILL NEED A GNUPG PACKAGE OF SOME KIND:
+# If we have override packages for this OS for anything installed as a
+# build-dep below then we'll need the key trusted early.
+# (This bit me with `jq` on trusty).
+apt-key add /vagrant/confs/apt-repo-keyring.asc
+
 
 echo "$0: apt packages for building GnuPG and friends"
 
