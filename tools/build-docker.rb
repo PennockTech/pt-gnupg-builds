@@ -4,6 +4,8 @@ require 'optparse'
 require 'pathname'
 require 'set'
 
+require_relative 'support'
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: build-docker [<specific-target> ...]"
@@ -16,24 +18,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-def env_want?(varname)
-  value = ENV.fetch(varname) { "" }
-  return !value.empty?
-end
-
-def source_site_env
-  previous = Hash[`bash -c 'printenv --null'`.split("\x00").map{ |kv| kv.split('=', 2) }]
-  `bash -c '. ./site-local.env; printenv --null'`.split("\x00").each{ |kv|
-    k, v = kv.split('=', 2)
-    if !previous.has_key?(k) || previous[k] != v
-      case k
-      when 'SHLVL'
-      else
-        ENV[k] = v
-      end
-    end
-  }
-end
+# support.rb
 source_site_env
 
 # Passed onto the actual build invocation.
@@ -53,44 +38,13 @@ if ENV.has_key?('PT_INITIAL_DEPLOY')
   $vbuild_env['PT_INITIAL_DEPLOY'] = ENV['PT_INITIAL_DEPLOY']
 end
 
-
-class PTBuild
-  attr_reader :name, :image_list, :base_script, :repo
-  @@optional_fields = :box_version_pin, :comment
-  attr_reader *@@optional_fields
-  def initialize(name, image_list, base_script, repo)
-    @name = name
-    @image_list = image_list
-    @base_script = base_script
-    @repo = repo
-  end
-end
-
-PTCONTAINERS = []
-pt_seen_containers = Set.new
-TopDir = %x(git rev-parse --show-toplevel).chomp
-JSON.load(open(TopDir + '/confs/machines.json')).each do |m|
-  m.has_key?('docker') or next
-  raise "duplicate definition for #{m['name']}" if pt_seen_containers.include?(m['name'])
-  ptb = PTBuild.new(m['name'], m['docker'], m['base_script'], m['repo'])
-  PTBuild.class_variable_get(:@@optional_fields).each { |optional|
-    if m.has_key?(optional.to_s)
-      atattr = '@' + optional.to_s
-      puts "OPTIONAL on #{m['name']}: SET #{optional} TO: #{m[optional.to_s]}" if options[:verbose]
-      ptb.instance_variable_set(atattr, m[optional.to_s])
-    end
-  }
-  PTCONTAINERS << ptb
-  pt_seen_containers.add(m['name'])
-end
-
 $asset_indir = ENV["PT_GNUPG_IN"] || "./in"
 # Triggers local environmental actions such as configuring home cache; this
 # should become somewhat less kludgy.
 $enable_ptlocal = ENV["NAME"] == "Phil Pennock"
 
 def run_container(wanted_name)
-  candidates = PTCONTAINERS.select{|c| c.name == wanted_name}
+  candidates = $PTCONTAINERS.select{|c| c.name == wanted_name}
   if candidates.length == 0
     raise "Found 0 matches for #{wanted_name}"
   elsif candidates.length > 1
@@ -184,16 +138,16 @@ def run_container(wanted_name)
 end
 
 if options[:list]
-  pt_seen_containers.sort.each do |c|
+  $pt_seen_containers.sort.each do |c|
     puts c
   end
   exit 0
 end
 
-ARGV.concat(pt_seen_containers.sort) if ARGV.length == 0
+ARGV.concat($pt_seen_containers.sort) if ARGV.length == 0
 
 ARGV.each do |name|
-  if !pt_seen_containers.include?(name)
+  if !$pt_seen_containers.include?(name)
     raise "unknown container name: #{name}"
   end
   run_container name
