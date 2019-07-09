@@ -75,7 +75,16 @@ fi
 # publishing switches a distribution+endpoint between snapshots
 # FIXME: multiple distributions in one repo??
 
-publish_fn="$(mktemp -t publish)"
+case "$OSTYPE" in
+linux-gnu)
+  publish_fn="$(mktemp -t publish.XXXXXXXXXX)"
+  ;;
+darwin*)
+  publish_fn="$(mktemp -t publish)"
+  ;;
+*)
+  die "need to know how to invoke mktemp(1) on $OSTYPE";;
+esac
 cat >> "$publish_fn" <<EOPUBLISH
 #!/bin/sh -eu
 $path_fixup
