@@ -283,7 +283,7 @@ class BuildPlan(object):
       return None
 
   def _print_already(self, stagename):
-    print('\033[34mAlready: \033[3m{}\033[0m'.format(stagename), flush=True)
+    print('\033[34m[{}] Already: \033[3m{}\033[0m'.format(self.options.boxname, stagename), flush=True)
 
   def build_one(self, product_name):
     if product_name not in self.configures['packages']:
@@ -299,7 +299,7 @@ class BuildPlan(object):
           continue
         params += self._normalize_list(chunk.get('params', []))
         envs += self._normalize_list(chunk.get('env', []))
-    print('\033[36;1mBuild: \033[3m{}\033[0m'.format(product_name), flush=True)
+    print('\033[36;1m[{}] Build: \033[3m{}\033[0m'.format(self.options.boxname, product_name), flush=True)
     product = self.products[product_name]
     self.ensure_clear_for(product)
     self.untar(product, product.tarball, product.dirname)

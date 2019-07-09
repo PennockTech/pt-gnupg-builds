@@ -66,9 +66,12 @@ case $(lsb_release -sc) in
     ;;
 esac
 
-# Be careful to not include here
+# Be careful to not include [ed: what???] here
 pt_apt_get build-dep gnupg2 pinentry
-pt_apt_get install libsqlite3-dev libncurses5-dev lzip jq xz-utils
+# We include sqlite3 because our package now declares a dependency upon it,
+# as the most portable (albeit _wrong_) way to get sqlite and readline libs
+# of the correct versions installed.
+pt_apt_get install libsqlite3-dev libncurses5-dev lzip jq xz-utils sqlite3
 # ruby-dev for fpm;
 # python-pip for our build scripts; probably xenial?  trusty wants python3-pip
 pt_apt_get install ruby ruby-dev python3 git curl python-pip python3-pip

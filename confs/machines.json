@@ -86,6 +86,7 @@
   {
     "name": "jessie",
     "box": "debian/jessie64",
+    "docker": ["pdp-jessie", "debian:jessie"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -102,6 +103,7 @@
   {
     "name": "trusty",
     "box": "ubuntu/trusty64",
+    "docker": ["pdp-trusty", "ubuntu:trusty"],
     "base_script": "debian-family",
     "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main",
     "repo_endpoints": [
