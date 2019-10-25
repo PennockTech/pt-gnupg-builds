@@ -18,7 +18,7 @@ DOWNLOADS_DIR="${script_dir:?}/../in"
 echo "$0: GnuPG SWDB and tarballs signing keys setup"
 gpg --import "${CONFS_DIR:?}/pgp-swdb-signing-key.asc" "${CONFS_DIR:?}/tarballs-keyring.asc"
 
-if stat --version | grep -qs coreutils
+if stat --version 2>/dev/null | grep -qs coreutils
 then
   stat_ctime() { st_ctime="$(stat -c %Z "${1:?}")"; }
 else
