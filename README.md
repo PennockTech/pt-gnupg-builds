@@ -72,10 +72,24 @@ management and are tuned via `confs/deploy.sh`.
 
 There is no framework for resuming builds, but you can manually invoke Docker
 with the given command-lines but no command to run inside the container, then
-manually run the setup/build command-line.
+manually run the setup/build command-line.  You can also pre-generate the
+baseline OS image with all packages loaded.
 
 For Docker, `./in/` and `./out/${BUILD}/` are volume bind-mounted into the
 container.
+
+In the `confs/machines.json` file the `docker` array for each machine defines
+an ordered list of preferred base images.  If you expect to need to iterate
+and want to cut down on the start-up time, then try:
+
+```console
+% ./tools/generate_docker_images.sh disco
+```
+
+This will install all the OS packages, `fpm`, etc and do all the pre-setup
+work; the resulting image will be tagged, and you can insert the name of the
+built image into the preference list for the machines array.  If not already
+there.
 
 
 Updating

@@ -113,7 +113,7 @@ def run_container(wanted_name)
     bash_commands += ["os/update.#{spec.base_script}.sh"]
     if ! spec.repo.nil?
       bash_commands += [
-        "os/gnupg-repos.#{spec.base_script}.sh #{spec.repo}"
+        "os/gnupg-repos.#{spec.base_script}.sh '#{spec.repo}'"
       ]
     end
     bash_commands += ['vscripts/user.presetup.sh']

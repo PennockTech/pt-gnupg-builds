@@ -2,7 +2,7 @@
 
   {
     "name": "eoan",
-    "docker": ["pdp-eoan", "pdp-eoan-gnupg:20200107", "ubuntu:eoan"],
+    "docker": ["ptgnupg-eoan", "ubuntu:eoan"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -18,7 +18,7 @@
 
   {
     "name": "disco",
-    "docker": ["pdp-disco", "ubuntu:disco-20190614", "ubuntu:disco"],
+    "docker": ["ptgnupg-disco", "ubuntu:disco"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -34,7 +34,7 @@
 
   {
     "name": "buster",
-    "docker": ["pdp-buster", "debian:buster"],
+    "docker": ["ptgnupg-buster", "debian:buster"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -51,7 +51,7 @@
   {
     "name": "xenial",
     "box": "ubuntu/xenial64",
-    "docker": ["pdp-xenial", "ubuntu:xenial"],
+    "docker": ["ptgnupg-xenial", "ubuntu:xenial"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -68,7 +68,7 @@
   {
     "name": "stretch",
     "box": "debian/stretch64",
-    "docker": ["pdp-stretch", "debian:stretch"],
+    "docker": ["ptgnupg-stretch", "debian:stretch"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -85,7 +85,7 @@
   {
     "name": "bionic",
     "box": "ubuntu/bionic64",
-    "docker": ["pdp-bionic", "ubuntu:bionic"],
+    "docker": ["ptgnupg-bionic", "ubuntu:bionic"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -102,7 +102,7 @@
   {
     "name": "jessie",
     "box": "debian/jessie64",
-    "docker": ["pdp-jessie", "debian:jessie"],
+    "docker": ["ptgnupg-jessie", "debian:jessie"],
     "base_script": "debian-family",
     "repo_endpoints": [
       {
@@ -119,7 +119,7 @@
   {
     "name": "trusty",
     "box": "ubuntu/trusty64",
-    "docker": ["pdp-trusty", "ubuntu:trusty"],
+    "docker": ["ptgnupg-trusty", "ubuntu:trusty"],
     "base_script": "debian-family",
     "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main",
     "repo_endpoints": [

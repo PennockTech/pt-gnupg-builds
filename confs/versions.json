@@ -10,6 +10,7 @@
     "pinentry": { "pkg_version": "8", "reason": "[1.1.0] bumped libgpg-error dependency to 1.36" },
     "libassuan": { "pkg_version": "2", "reason": "[2.5.3] bumped libgpg-error dependency to 1.36" },
     "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" },
+    "nettle": { "pkg_version": "2", "reason": "[3.5.1] conflicting package built and not cached locally" },
     "gnupg22": { "build_version": "2.2.19", "reason": "versions server down, overriding stale swdb.lst" }
   },
   "_final": "vim: set ft=json sw=2 :"
