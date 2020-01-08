@@ -3,14 +3,14 @@
   "products": {
     "gmp": { "version": "6.1.2", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
     "nettle": { "version": "3.5.1", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
-    "gnutls": { "version": "3.6.10", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
+    "gnutls": { "version": "3.6.11.1", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
     "libksba": { "pkg_version": "7", "reason": "[1.3.5] bumped libgpg-error dependency to 1.36" },
     "pinentry": { "pkg_version": "8", "reason": "[1.1.0] bumped libgpg-error dependency to 1.36" },
     "libassuan": { "pkg_version": "2", "reason": "[2.5.3] bumped libgpg-error dependency to 1.36" },
     "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" },
-    "gnupg": { "pkg_version": "2", "reason": "[2.2.17] bumped gnutls dependency to 3.6.10" }
+    "gnupg22": { "build_version": "2.2.19", "reason": "versions server down, overriding stale swdb.lst" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }

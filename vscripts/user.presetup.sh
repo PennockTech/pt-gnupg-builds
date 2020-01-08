@@ -27,7 +27,14 @@ echo "Fetching SWDB and verifying"
 if [ -f swdb.lst ] && [ -f swdb.lst.sig ]; then
   :
 else
-  curl -Ss --remote-name-all https://versions.gnupg.org/swdb.lst https://versions.gnupg.org/swdb.lst.sig
+  if curl -Ss --remote-name-all https://versions.gnupg.org/swdb.lst https://versions.gnupg.org/swdb.lst.sig
+  then
+    :
+  elif [ -f /in/swdb.lst ]; then
+    echo >&2 "$0: WARNING: versions.gnupg.org down?"
+    echo >&2 "$0: using possibly stale date from /in/swdb.lst"
+    cp /in/swdb.* .
+  fi
 fi
 # On stretch/GnuPG-2.1.18, there's no implicit file, so specify it explicitly.
 gpg --batch --trust-model direct --verify swdb.lst.sig swdb.lst
