@@ -1,6 +1,22 @@
 [
 
   {
+    "name": "eoan",
+    "docker": ["pdp-eoan", "pdp-eoan-gnupg:20200107", "ubuntu:eoan"],
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/ubuntu/eoan"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/eoan",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
+  },
+
+  {
     "name": "disco",
     "docker": ["pdp-disco", "ubuntu:disco-20190614", "ubuntu:disco"],
     "base_script": "debian-family",
