@@ -21,6 +21,8 @@ end.parse!
 # support.rb
 source_site_env
 
+class MissingDockerImagesError < StandardError; end
+
 # Passed onto the actual build invocation.
 $vbuild_env = {
   # Canonical would be: https://www.gnupg.org/ftp/gcrypt/
@@ -43,7 +45,7 @@ $asset_indir = ENV["PT_GNUPG_IN"] || "./in"
 # should become somewhat less kludgy.
 $enable_ptlocal = ENV["NAME"] == "Phil Pennock"
 
-def run_container(wanted_name)
+def find_usable_image(wanted_name)
   candidates = $PTCONTAINERS.select{|c| c.name == wanted_name}
   if candidates.length == 0
     raise "Found 0 matches for #{wanted_name}"
@@ -69,8 +71,14 @@ def run_container(wanted_name)
   end
 
   if image.nil?
-    raise "Docker has none of those images preloaded; load one manually please"
+    raise MissingDockerImagesError, "#{spec.name}: tried #{spec.image_list}"
   end
+
+  return spec, image
+end
+
+def run_container(wanted_name)
+  spec, image = find_usable_image(wanted_name)
 
   generated_assets_dir = Pathname("./out/#{spec.name}")
   if ! generated_assets_dir.exist?
@@ -146,10 +154,33 @@ end
 
 ARGV.concat($pt_seen_containers.sort) if ARGV.length == 0
 
+# First pass through, validate them all before the human wanders away and comes
+# back later to discover things died unexpectedly early.
+all_names_okay = true
+valid_names = []
+invalid_names = []
 ARGV.each do |name|
   if !$pt_seen_containers.include?(name)
-    raise "unknown container name: #{name}"
+    raise "no valid docker images for building: #{name}"
   end
+  begin
+    spec, image = find_usable_image(name)
+    valid_names += [name]
+  rescue MissingDockerImagesError => exception
+    invalid_names += [name]
+    all_names_okay = false
+    $stderr.puts("[#{name}] docker pre-check failed: #{$!}")
+  end
+end
+
+if ! all_names_okay
+  $stderr.puts("aborting, without running any valid container builds")
+  $stderr.puts("Okay at Docker level    : #{valid_names}")
+  $stderr.puts("Missing at Docker level : #{invalid_names}")
+  exit 1
+end
+
+ARGV.each do |name|
   run_container name
 end
 
