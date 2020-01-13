@@ -14,6 +14,7 @@ __author__ = 'phil@pennock-tech.com (Phil Pennock)'
 import argparse
 import functools
 import json
+import pathlib
 import os
 import subprocess
 import sys
@@ -149,6 +150,12 @@ def _main(args, argv0):
   parser.add_argument('machines', nargs='+', metavar='machine',
                       help='machines to act upon')
   options = parser.parse_args(args=args)
+
+  if not pathlib.Path(options.deploy_config_file).exists():
+    want_dir = pathlib.Path(sys.argv[0]).absolute().parent.parent
+    if options.verbose > 0:
+      print(f'no file {options.deploy_config_file!r}, switching to directory {want_dir!r}', file=sys.stderr, flush=True)
+    os.chdir(want_dir)
 
   mconf = MachinesConfig(options)
   for machine in options.machines:
