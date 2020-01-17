@@ -94,7 +94,7 @@ _update_userkeyring() {
   local t; t="$(set_for_tag "$1")"; eval "${t:-false}"; unset t
   note "Updating in your keyring: $keys"
   "${GPG}" </dev/null --batch \
-    --refresh-keys $keys
+    --refresh-keys $keys || true
 }
 
 _update_file_from_userkeyring() {
