@@ -53,6 +53,9 @@ warn() { printf >&2 "%s: %s\n" "$progname" "$*"; }
 die() { warn "$@"; exit 1; }
 
 # eval me with tag name, get $keys and $file out
+#
+# Memo: if we're assuming bash anyway, why not just use namerefs and arrays?
+#       it's not worth fixing for idealism since it's working now.
 set_for_tag() {
   local tag="${1:?need a tag}"
   local keysvar filevar
@@ -94,7 +97,16 @@ _update_userkeyring() {
   local t; t="$(set_for_tag "$1")"; eval "${t:-false}"; unset t
   note "Updating in your keyring: $keys"
   "${GPG}" </dev/null --batch \
+    --keyserver-options honor-keyserver-url,honor-pka-record \
     --refresh-keys $keys || true
+
+  local email
+  "${GPG}" </dev/null --batch \
+    --with-colons --list-keys $keys | \
+    awk -F: '/^uid:/ {print $10}' | sed -nEe 's/^.*<([^>]+)>.*$/\1/p' | \
+    while read -r email; do
+      gpg --locate-external-keys "$email" || true
+    done
 }
 
 _update_file_from_userkeyring() {
@@ -112,11 +124,32 @@ update_for_tag() {
   note updated "$1"
 }
 
+_list_for_one_tag() {
+  local t; t="$(set_for_tag "$1")"; eval "${t:-false}"; unset t
+  printf >&2 'Keys known for tag: %s\n' "$1"
+  printf '%s\n' "${keys}" | xargs -n 1
+}
+
+list_for_args() {
+  if [ "$#" -eq 0 ]; then
+    printf "Known tags:\n"
+    printf "  %s\n" $tags
+    return 0
+  fi
+  local user_t t2
+  for user_t; do
+    case "$user_t" in
+    (all) for t2 in $tags; do _list_for_one_tag "$t2"; done ;;
+    (*) _list_for_one_tag "$user_t" ;;
+    esac
+  done
+}
+
 main() {
   set -eu
   cmd="${1:-help}"
   case "$cmd" in
-    list) printf "Known tags:\n"; printf "  %s\n" $tags ;;
+    list) shift; list_for_args "$@" ;;
     inspect) inspect_current "${2:?need a tag, see 'list'}" ;;
     update) update_for_tag "${2:?need a tag, see 'list'}" ;;
     all) for t in $tags; do update_for_tag $t; done ;;
