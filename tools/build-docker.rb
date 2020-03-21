@@ -6,15 +6,18 @@ require 'set'
 
 require_relative 'support'
 
-options = {}
+$options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: build-docker [<specific-target> ...]"
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
-    options[:verbose] = v
+    $options[:verbose] = v
   end
   opts.on("-l", "--list", "List known targets and exit") do |v|
-    options[:list] = true
+    $options[:list] = true
+  end
+  opts.on("--skip-os-update", "Skip OS update") do |v|
+    $options[:skip_os_update] = true
   end
 end.parse!
 
@@ -110,7 +113,9 @@ def run_container(wanted_name)
     if $enable_ptlocal and File.exists?("os/ptlocal.#{spec.base_script}.sh")
       bash_commands += ["os/ptlocal.#{spec.base_script}.sh"]
     end
-    bash_commands += ["os/update.#{spec.base_script}.sh"]
+    if ! $options[:skip_os_update]
+      bash_commands += ["os/update.#{spec.base_script}.sh"]
+    end
     if ! spec.repo.nil?
       bash_commands += [
         "os/gnupg-repos.#{spec.base_script}.sh '#{spec.repo}'"
@@ -150,7 +155,7 @@ def run_container(wanted_name)
 
 end
 
-if options[:list]
+if $options[:list]
   $pt_seen_containers.sort.each do |c|
     puts c
   end
