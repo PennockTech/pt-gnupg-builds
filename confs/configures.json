@@ -27,7 +27,7 @@
       "env": [
         "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig:#{prefix}/lib64/pkgconfig",
         "GMP_CFLAGS=-I#{prefix}/include",
-        "GMP_LIBS=-L#{prefix}/lib -L#{prefix}/lib64",
+        "GMP_LIBS=-lgmp",
         "LDFLAGS=-L#{prefix}/lib -L#{prefix}/lib64 -Wl,-R#{prefix}/lib -Wl,-R#{prefix}/lib64"
       ],
       "params": [
