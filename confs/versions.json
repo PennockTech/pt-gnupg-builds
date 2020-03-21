@@ -1,7 +1,7 @@
 {
   "about": "These are the third-party products which we depend upon",
   "products": {
-    "gmp": { "version": "6.1.2", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
+    "gmp": { "version": "6.2.0", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
     "nettle": { "version": "3.5.1", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
     "gnutls": { "version": "3.6.12", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
@@ -11,8 +11,8 @@
     "pinentry": { "pkg_version": "9", "reason": "[1.1.0] bumped libgpg-error dependency to 1.37" },
     "libassuan": { "pkg_version": "3", "reason": "[2.5.3] bumped libgpg-error dependency to 1.37" },
     "libgcrypt": { "pkg_version": "2", "reason": "[1.8.5] bumped libgpg-error dependency to 1.37" },
-    "gmp": { "pkg_version": "2", "reason": "[6.1.2] added --enable-fat to build" },
-    "nettle": { "pkg_version": "2", "reason": "[3.5.1] conflicting package built and not cached locally" }
+    "gnutls": { "pkg_version": "2", "reasons": "[3.6.12] bumped nettle to pkgver 3 because bumped gmp to 6.2.0" },
+    "nettle": { "pkg_version": "3", "reason": "[3.5.1] bumped gmp dependency to 6.2.0" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }
