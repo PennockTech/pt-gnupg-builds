@@ -133,6 +133,10 @@ $sudo dpkg -P "\$@"
 EOBPU
 chmod 755 /usr/local/bin/pt-build-pkg-uninstall
 
+# We really need to nuke any system headers for libgmp
+pt_apt_get remove libgmp-dev:amd64 || true
+pt_apt_get remove libgmp-dev || true
+
 # -----------------------------8< cut here >8-----------------------------
 # If we ever have non-debian stuff, we'll probably want to move stuff after
 # here out to a separate root-run setup stage.

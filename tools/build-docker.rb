@@ -131,10 +131,15 @@ def run_container(wanted_name)
     puts "[#{spec.name}] running #{image}: #{container_id}"
     # There is a race here, we're going to lose the very first output.
     # Thus we sleep first.
-    system("docker", "attach", container_id)
-    # XXX
+    if not system("docker", "attach", container_id)
+      return false
+    end
 
-    system("docker", "wait", container_id)
+    if not system("docker", "wait", container_id)
+      return false
+    end
+
+    return true
 
   ensure
     if ! container_id.nil?
@@ -180,12 +185,26 @@ if ! all_names_okay
   exit 1
 end
 
+succeeded = []
+failed = []
 ARGV.each do |name|
-  run_container name
+  if run_container name
+    succeeded.append(name)
+  else
+    failed.append(name)
+  end
+end
+
+puts "Done with any builds.  Success: #{succeeded.length}  Failure: #{failed.length}"
+puts "  Success: #{succeeded.join(' ')}"
+puts "  Failure: #{failed.join(' ')}"
+
+if failed
+  exit 1
 end
 
 puts """
-Done with any builds, invoke publish-packages.rb to copy files to repos.
+Invoke publish-packages.rb to copy files to repos.
 That will prompt for a PGP passphrase, if key is so protected.
 That has a timeout.  So be ready.
 
