@@ -17,22 +17,6 @@
   },
 
   {
-    "name": "disco",
-    "docker": ["ptgnupg-disco", "ubuntu:disco"],
-    "base_script": "debian-family",
-    "repo_endpoints": [
-      {
-        "spec": "pt/ubuntu/disco"
-      },
-      {
-        "spec": "s3:pennocktech:pt/ubuntu/disco",
-        "aws_profile": "pennocktech",
-        "aws_cloudfront": "EFI5I7XJ5E6BC"
-      }
-    ]
-  },
-
-  {
     "name": "buster",
     "docker": ["ptgnupg-buster", "debian:buster"],
     "base_script": "debian-family",
@@ -93,45 +77,6 @@
       },
       {
         "spec": "s3:pennocktech:pt/ubuntu/bionic",
-        "aws_profile": "pennocktech",
-        "aws_cloudfront": "EFI5I7XJ5E6BC"
-      }
-    ]
-  },
-
-  {
-    "name": "jessie",
-    "box": "debian/jessie64",
-    "docker": ["ptgnupg-jessie", "debian:jessie"],
-    "base_script": "debian-family",
-    "repo_endpoints": [
-      {
-        "spec": "pt/debian/jessie"
-      },
-      {
-        "spec": "s3:pennocktech:pt/debian/jessie",
-        "aws_profile": "pennocktech",
-        "aws_cloudfront": "EFI5I7XJ5E6BC"
-      }
-    ]
-  },
-
-  {
-    "name": "trusty",
-    "box": "ubuntu/trusty64",
-    "docker": ["ptgnupg-trusty", "ubuntu:trusty"],
-    "base_script": "debian-family",
-    "repo": "deb https://apt.orchard.lan/spodhuis/ubuntu/trusty trusty main",
-    "repo_endpoints": [
-      {
-        "spec": "spodhuis/ubuntu/trusty"
-      },
-      {
-        "spec": "s3:spodhuis-packages:spodhuis/ubuntu/trusty",
-        "aws_profile": "spodhuis"
-      },
-      {
-        "spec": "s3:pennocktech:pt/ubuntu/trusty",
         "aws_profile": "pennocktech",
         "aws_cloudfront": "EFI5I7XJ5E6BC"
       }

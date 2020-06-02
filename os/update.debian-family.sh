@@ -57,10 +57,6 @@ pt_apt_get install apt-transport-https
 
 pt_apt_get install build-essential lsb-release
 case $(lsb_release -sc) in
-  trusty)
-    pt_apt_get install automake
-    pt_apt_get build-dep gnutls28
-    ;;
   *)
     pt_apt_get build-dep gnutls-bin
     ;;
