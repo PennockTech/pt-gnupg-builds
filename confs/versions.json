@@ -2,17 +2,14 @@
   "about": "These are the third-party products which we depend upon",
   "products": {
     "gmp": { "version": "6.2.0", "compress": "xz", "urlbase": "https://ftp.gnu.org/gnu/gmp/" },
-    "nettle": { "version": "3.5.1", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
-    "gnutls": { "version": "3.6.12", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
+    "nettle": { "version": "3.6", "compress": "gz", "urlbase": "https://ftp.gnu.org/gnu/nettle/" },
+    "gnutls": { "version": "3.6.13", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
-    "gnupg22": { "pkg_version": "2", "reason": "[2.2.19] bumped gnutls dependency to 3.6.12, libgpg-error to 1.37" },
-    "libksba": { "pkg_version": "8", "reason": "[1.3.5] bumped libgpg-error dependency to 1.37" },
-    "pinentry": { "pkg_version": "9", "reason": "[1.1.0] bumped libgpg-error dependency to 1.37" },
-    "libassuan": { "pkg_version": "3", "reason": "[2.5.3] bumped libgpg-error dependency to 1.37" },
-    "libgcrypt": { "pkg_version": "2", "reason": "[1.8.5] bumped libgpg-error dependency to 1.37" },
-    "gnutls": { "pkg_version": "2", "reasons": "[3.6.12] bumped nettle to pkgver 3 because bumped gmp to 6.2.0" },
-    "nettle": { "pkg_version": "3", "reason": "[3.5.1] bumped gmp dependency to 6.2.0" }
+    "gnupg22": { "pkg_version": "3", "reason": "[2.2.19] bumped gnutls dependency to 3.6.13 (nettle to 3.6), libgpg-error to 1.38, libksba to 1.4.0" },
+    "pinentry": { "pkg_version": "10", "reason": "[1.1.0] bumped libgpg-error dependency to 1.38" },
+    "libassuan": { "pkg_version": "4", "reason": "[2.5.3] bumped libgpg-error dependency to 1.38" },
+    "libgcrypt": { "pkg_version": "3", "reason": "[1.8.5] bumped libgpg-error dependency to 1.38" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }
