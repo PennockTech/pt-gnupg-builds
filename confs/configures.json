@@ -106,7 +106,7 @@
     },
     "gnupg22": {
       "env": [
-        "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig",
+        "PKG_CONFIG_PATH=#{prefix}/lib/pkgconfig:#{prefix}/lib64/pkgconfig",
         "LDFLAGS=-L#{prefix}/lib -Wl,-R#{prefix}/lib"
       ],
       "params": [
