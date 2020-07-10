@@ -6,7 +6,6 @@
     "gnutls": { "version": "3.6.14", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
-    "gnupg22": { "pkg_version": "5", "reason": "[2.2.20] bumped gnutls dependency to 3.6.14 (nettle to 3.6), libgpg-error to 1.38, libksba to 1.4.0, libgcrypt to 1.8.6" },
     "pinentry": { "pkg_version": "10", "reason": "[1.1.0] bumped libgpg-error dependency to 1.38" },
     "libassuan": { "pkg_version": "4", "reason": "[2.5.3] bumped libgpg-error dependency to 1.38" }
   },
