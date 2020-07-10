@@ -204,7 +204,7 @@ puts "Done with any builds.  Success: #{succeeded.length}  Failure: #{failed.len
 puts "  Success: #{succeeded.join(' ')}"
 puts "  Failure: #{failed.join(' ')}"
 
-if failed
+if !failed.empty?
   exit 1
 end
 
