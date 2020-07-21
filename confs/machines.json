@@ -1,6 +1,22 @@
 [
 
   {
+    "name": "focal",
+    "docker": ["ptgnupg-focal", "ubuntu:focal"],
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "pt/ubuntu/focal"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/focal",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
+  },
+
+  {
     "name": "eoan",
     "docker": ["ptgnupg-eoan", "ubuntu:eoan"],
     "base_script": "debian-family",
