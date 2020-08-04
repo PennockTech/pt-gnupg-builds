@@ -69,8 +69,11 @@ pt_apt_get build-dep gnupg2 pinentry
 # of the correct versions installed.
 pt_apt_get install libsqlite3-dev libncurses5-dev lzip jq xz-utils sqlite3
 # ruby-dev for fpm;
+#
 # python-pip for our build scripts; probably xenial?  trusty wants python3-pip
-pt_apt_get install ruby ruby-dev python3 git curl python-pip python3-pip
+# Focal no longer has python-pip.  All seem to have python3-pip.
+pt_apt_get install ruby ruby-dev python3 git curl python3-pip
+pt_apt_get install python-pip || true
 
 # gnutls aux tools: libopts25 libunbound2
 # pinentry: libsecret-1-0
