@@ -104,12 +104,17 @@ if ruby -e 'if !RUBY_VERSION.start_with?("1."); then exit(1); end'; then
   ruby2.0 -S gem install psych --version 2.0.17
   pt_apt_get install ruby2.0 libruby2.0
   gem_cmd='ruby2.0 -r yaml -r rubygems/safe_yaml -S gem2.0'
+  gem_no_docs='--no-ri --no-rdoc'
   #
+elif ruby -e 'if !((RUBY_VERSION.split(".").map{|s|s.to_i} <=> [2,7,0]) >= 0); then exit(1); end'; then
+  gem_cmd='gem'
+  gem_no_docs='--no-document'
 else
   gem_cmd='gem'
+  gem_no_docs='--no-ri --no-rdoc'
 fi
 echo "$0: $gem_cmd install fpm"
-$gem_cmd install --no-ri --no-rdoc fpm
+$gem_cmd install $gem_no_docs fpm
 
 pip_cmd=pip
 if which pip3 >/dev/null 2>&1; then pip_cmd=pip3; fi
