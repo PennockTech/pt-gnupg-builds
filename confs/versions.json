@@ -6,8 +6,11 @@
     "gnutls": { "version": "3.6.14", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
-    "pinentry": { "pkg_version": "10", "reason": "[1.1.0] bumped libgpg-error dependency to 1.38" },
-    "libassuan": { "pkg_version": "4", "reason": "[2.5.3] bumped libgpg-error dependency to 1.38" }
+    "pinentry": { "pkg_version": "11", "reason": "[1.1.0] bumped libgpg-error dependency to 1.39" },
+    "libassuan": { "pkg_version": "5", "reason": "[2.5.3] bumped libgpg-error dependency to 1.39" },
+    "libgcrypt": { "pkg_version": "2", "reason": "[1.8.6] bumped libgpg-error dependency to 1.39" },
+    "libksba": { "pkg_version": "2", "reason": "[1.4.0] bumped libgpg-error dependency to 1.39" },
+    "gnupg22": { "pkg_version": "2", "reason": "[2.2.21] bumped libgpg-error dependency to 1.39" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }
