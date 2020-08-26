@@ -12,7 +12,7 @@ then
     lsb_release="$DISTRIB_CODENAME"
   else
     printf >&2 '%s: %s\n' "$(basename "$0" .sh)" "unknown release, can't find LSB, no proxy being setup (probably fine)"
-    exit 1
+    exit 0
   fi
 fi
 
