@@ -33,7 +33,7 @@ end
 
 class PTBuild
   attr_reader :name, :image_list, :base_script, :repo
-  @@optional_fields = :box_version_pin, :comment
+  @@optional_fields = :box_version_pin, :comment, :gpg_command
   attr_reader *@@optional_fields
   def initialize(name, image_list, base_script, repo)
     @name = name
@@ -53,7 +53,8 @@ JSON.load(open($TopDir + '/confs/machines.json')).each do |m|
   PTBuild.class_variable_get(:@@optional_fields).each { |optional|
     if m.has_key?(optional.to_s)
       atattr = '@' + optional.to_s
-      puts "OPTIONAL on #{m['name']}: SET #{optional} TO: #{m[optional.to_s]}" if options[:verbose]
+      # Can't guard this on options[:verbose], options is not available to this lib
+      puts "OPTIONAL on #{m['name']}: SET #{optional} TO: #{m[optional.to_s]}"
       ptb.instance_variable_set(atattr, m[optional.to_s])
     end
   }

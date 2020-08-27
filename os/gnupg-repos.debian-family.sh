@@ -31,11 +31,7 @@ pt_apt_get update
 
 bootstrap_via_older_ptgnupg=false
 case "$(lsb_release -sc)" in
-xenial)
-  # The GnuPG2 does not handle the Ed25519 signature used for
-  # signing the GnuPG 2.2.22 release
-  bootstrap_via_older_ptgnupg=true
-  ;;
+  *) true ;;
 esac
 
 if "$bootstrap_via_older_ptgnupg"; then

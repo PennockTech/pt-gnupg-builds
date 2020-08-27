@@ -23,6 +23,11 @@ if [ -f /var/run/bootstrap.older.optgnupg-gnupg ]; then
   export PATH
 fi
 
+# Used to force gpg2 sometimes
+if [ -n "${GPG:-}" ]; then
+  gpg() { command "${GPG:?}" "$@"; }
+fi
+
 echo "$0: GnuPG SWDB and tarballs signing keys setup"
 gpg --batch --import /vagrant/confs/pgp-swdb-signing-key.asc /vagrant/confs/tarballs-keyring.asc
 # We'd like to use:  gpg --tofu-policy good $swdb_key

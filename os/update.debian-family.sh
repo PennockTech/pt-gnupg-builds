@@ -57,6 +57,11 @@ pt_apt_get install apt-transport-https
 
 pt_apt_get install build-essential lsb-release
 case $(lsb_release -sc) in
+  xenial)
+    # Need gpg2 for Ed25519 keys
+    pt_apt_get install gnupg2
+    pt_apt_get build-dep gnutls-bin
+    ;;
   *)
     pt_apt_get build-dep gnutls-bin
     ;;

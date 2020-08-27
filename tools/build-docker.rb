@@ -121,8 +121,18 @@ def run_container(wanted_name)
         "os/gnupg-repos.#{spec.base_script}.sh '#{spec.repo}'"
       ]
     end
-    bash_commands += ['vscripts/user.presetup.sh']
-    bash_commands += ["vscripts/deps.py --ostype #{spec.base_script} --boxname #{spec.name} --run-inside"]
+
+    presetup_cmd = 'vscripts/user.presetup.sh'
+    deps_cmd = "vscripts/deps.py --ostype #{spec.base_script} --boxname #{spec.name} --run-inside"
+
+    if ! spec.gpg_command.nil?
+      presetup_cmd = "env GPG=#{spec.gpg_command} #{presetup_cmd}"
+      deps_cmd += " --gpg '#{spec.gpg_command}'"
+    end
+
+    bash_commands += [presetup_cmd]
+    bash_commands += [deps_cmd]
+
 #    bash_commands += [
 #      'kill -1 1',   # most reliable shutdown method
 #    ]
