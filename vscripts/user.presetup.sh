@@ -13,6 +13,16 @@
 # We use --batch because Vagrant doesn't supply a tty during provision and some
 # versions of GnuPG require it.
 
+if [ -f /var/run/bootstrap.older.optgnupg-gnupg ]; then
+  # We have installed an older binary of our own system.
+  # We do this for things like "the release binary is signed using algorithms
+  # not supported by the base OS GnuPG".
+  # The 2020-08 exemplar of this was the GnuPG 2.2.22 release being signed with
+  # an Ed25519 key, which the Xenial GnuPG did not support.
+  PATH="/opt/gnupg/bin${PATH:+:}${PATH:-}"
+  export PATH
+fi
+
 echo "$0: GnuPG SWDB and tarballs signing keys setup"
 gpg --batch --import /vagrant/confs/pgp-swdb-signing-key.asc /vagrant/confs/tarballs-keyring.asc
 # We'd like to use:  gpg --tofu-policy good $swdb_key

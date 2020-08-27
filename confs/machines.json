@@ -53,6 +53,7 @@
     "box": "ubuntu/xenial64",
     "docker": ["ptgnupg-xenial", "ubuntu:xenial"],
     "base_script": "debian-family",
+    "repo": "deb https://public-packages.pennock.tech/pt/ubuntu/xenial/ xenial main",
     "repo_endpoints": [
       {
         "spec": "pt/ubuntu/xenial"

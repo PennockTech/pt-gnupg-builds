@@ -22,6 +22,10 @@ import tempfile
 
 import requests
 
+# *sob*
+if os.path.exists('/var/run/bootstrap.older.optgnupg-gnupg'):
+  os.environ['PATH'] = '/opt/gnupg/bin' + os.pathsep + os.environ['PATH']
+
 # This is so wrong; the defaults should be defined as relative to dirs settable
 # with flags, so that don't need to override these early with environ.  I
 # messed up.
