@@ -54,7 +54,7 @@ JSON.load(open($TopDir + '/confs/machines.json')).each do |m|
     if m.has_key?(optional.to_s)
       atattr = '@' + optional.to_s
       # Can't guard this on options[:verbose], options is not available to this lib
-      puts "OPTIONAL on #{m['name']}: SET #{optional} TO: #{m[optional.to_s]}"
+      #puts "OPTIONAL on #{m['name']}: SET #{optional} TO: #{m[optional.to_s]}"
       ptb.instance_variable_set(atattr, m[optional.to_s])
     end
   }
