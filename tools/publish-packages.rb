@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
+require 'io/console'
 require 'json'
 require 'optparse'
 require 'pathname'
+require 'shellwords'
 
 require_relative 'support'
 
@@ -14,6 +16,10 @@ OptionParser.new do |opts|
 
   opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     Options[:verbose] = v
+  end
+
+  opts.on("-n", "--not-really", "Don't take mutating actions") do |v|
+    Options[:notreally] = v
   end
 
   opts.on("--initial", "Initial deploy for machine; do extra setup") do |v|
@@ -31,6 +37,21 @@ end.parse!
 
 SEEN_BASE_SCRIPTS = {}
 DEFERRED_DEPLOY_TARGETS = {}
+
+def maybe_system(*cmdline)
+  if Options[:notreally]
+    puts "+ #{cmdline.shelljoin}"
+  else
+    system(*cmdline)
+  end
+end
+
+def banner(title)
+  @columns ||= IO.console.winsize[1]
+  @start ||= STDOUT.isatty ? "\e[36;1m" : ''
+  @end ||= STDOUT.isatty ? "\e[m" : ''
+  puts "#{@start}───┤ #{title} ├" + ("─" * (@columns - title.length - 8)) + "#{@end}"
+end
 
 def deploy_one(build_name)
   if env_want?('PT_SKIP_DEPLOY')
@@ -73,7 +94,7 @@ def deploy_one(build_name)
   end
 
   if Options[:copy]
-    system(*dep_argv)
+    maybe_system(*dep_argv)
     case $?
     when 0
       puts "[#{build.name}] deploy succeeded"
@@ -88,7 +109,7 @@ def deploy_one(build_name)
 
   if Options[:invalidate]
     if !can_batch.exist?
-      system("#{$TopDir}/tools/caching_invalidate", build.name)
+      maybe_system("#{$TopDir}/tools/caching_invalidate", build.name)
     end
   end
 
@@ -106,11 +127,11 @@ def deploy_deferred
 
   invalidate = []
   for group in SEEN_BASE_SCRIPTS.keys.sort
-    system(SEEN_BASE_SCRIPTS[group], '-deferred', *DEFERRED_DEPLOY_TARGETS[group])
+    maybe_system(SEEN_BASE_SCRIPTS[group], '-deferred', *DEFERRED_DEPLOY_TARGETS[group])
     invalidate << DEFERRED_DEPLOY_TARGETS[group]
   end
 
-  system("#{$TopDir}/tools/caching_invalidate", *invalidate)
+  maybe_system("#{$TopDir}/tools/caching_invalidate", *invalidate)
 end
 
 if !Pathname('~/.aws/config').expand_path.exist?
@@ -127,6 +148,7 @@ ARGV.each do |name|
     continue
   end
 
+  banner name
   deploy_one name
 end
 deploy_deferred
