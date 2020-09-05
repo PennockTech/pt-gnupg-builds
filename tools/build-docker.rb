@@ -3,6 +3,7 @@ require 'json'
 require 'optparse'
 require 'pathname'
 require 'set'
+require 'shellwords'
 
 require_relative 'support'
 
@@ -138,7 +139,7 @@ def run_container(wanted_name)
 #    ]
 
     d_run_argv += [ '/bin/bash', '-c', bash_commands.join(' && ')]
-    puts "#{d_run_argv}\n"
+    $stderr.puts "+ #{d_run_argv.shelljoin}\n"
     IO.popen(d_run_argv) do |out|
       container_id = out.read
       container_id.rstrip!
