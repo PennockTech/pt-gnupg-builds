@@ -1,10 +1,18 @@
 #!/bin/sh -eu
 
+progname="$(basename "$0" .sh)"
+if [ -t 1 ]; then
+  readonly NoteColorStart='\033[33m' BoldStart='\033[1m' ColorEnd='\033[0m'
+else
+  readonly NoteColorStart='' BoldStart='' ColorEnd=''
+fi
+note() { printf "${NoteColorStart}%s: ${BoldStart}%s${ColorEnd}\n" "$progname" "$*"; }
+
 umask 022
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
-pt_apt_get() { apt-get -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" "$@"; }
+pt_apt_get() { note "apt-get" "$@"; apt-get -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" "$@"; }
 
-echo "$0: basic system package updates"
+note "basic system package updates"
 rm -f /etc/timezone
 echo UTC > /etc/timezone
 want_install_tzdata=false
@@ -16,7 +24,7 @@ fi
 unset TZ
 
 if [ -f /tmp/done.gnupg.baseupdate ]; then
-  echo "$0: skipping core update/upgrade"
+  note "skipping core update/upgrade"
 else
   if ! grep -q '^deb-src' /etc/apt/sources.list; then
     sed -n 's/^deb /deb-src /p' < /etc/apt/sources.list > /etc/apt/sources.list.d/std-sources.list
@@ -50,7 +58,7 @@ fi
 apt-key add /vagrant/confs/apt-repo-keyring.asc
 
 
-echo "$0: apt packages for building GnuPG and friends"
+note "apt packages for building GnuPG and friends"
 
 # For when we support getting "current versions" direct from repo:
 pt_apt_get install apt-transport-https
@@ -95,7 +103,7 @@ unset unbound
 # nb 2019-05: fpm now requires ruby2, trusty is 1.9.1 by default; also
 #             Gem::Version not yet part of stdlib there.
 if ruby -e 'if !RUBY_VERSION.start_with?("1."); then exit(1); end'; then
-  echo "$0: installing ruby2.0 on ancient system"
+  note "installing ruby2.0 on ancient system"
   #
   # ouch; instead of:
   ##pt_apt_get install ruby2.0
@@ -118,15 +126,15 @@ else
   gem_cmd='gem'
   gem_no_docs='--no-ri --no-rdoc'
 fi
-echo "$0: $gem_cmd install fpm"
+note "$gem_cmd install fpm"
 $gem_cmd install $gem_no_docs fpm
 
 pip_cmd=pip
 if which pip3 >/dev/null 2>&1; then pip_cmd=pip3; fi
-echo "$0: $pip_cmd install requests"
+note "$pip_cmd install requests"
 $pip_cmd install requests
 
-echo "$0: OS-agnostic package installer wrapper"
+note "OS-agnostic package installer wrapper"
 sudo='sudo'
 if ! which sudo >/dev/null 2>&1; then sudo=''; fi
 mkdir -pv /usr/local/bin
