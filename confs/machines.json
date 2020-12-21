@@ -17,22 +17,6 @@
   },
 
   {
-    "name": "eoan",
-    "docker": ["ptgnupg-eoan", "ubuntu:eoan"],
-    "base_script": "debian-family",
-    "repo_endpoints": [
-      {
-        "spec": "pt/ubuntu/eoan"
-      },
-      {
-        "spec": "s3:pennocktech:pt/ubuntu/eoan",
-        "aws_profile": "pennocktech",
-        "aws_cloudfront": "EFI5I7XJ5E6BC"
-      }
-    ]
-  },
-
-  {
     "name": "buster",
     "docker": ["ptgnupg-buster", "debian:buster"],
     "base_script": "debian-family",
