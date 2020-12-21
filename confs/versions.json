@@ -8,7 +8,10 @@
   "overrides": {
     "nettle": { "pkg_version": "2", "reason": "[3.6] bumped gmp dependency to 6.2.1" },
     "gnutls": { "pkg_version": "2", "reason": "[3.6.15] bumped nettle to pt2 because gmp to 6.2.1" },
-    "pinentry": { "pkg_version": "12", "reason": "[1.1.0] bumped libgpg-error dependency to 1.39, libassuan to 2.5.4" }
+    "libgcrypt": { "pkg_version": "2", "reason": "[1.8.7] bumped libgpg-error dependency to 1.41" },
+    "libksba": { "pkg_version": "2", "reason": "[1.5.0] bumped libgpg-error dependency to 1.41" },
+    "libassuan": { "pkg_version": "2", "reason": "[2.5.4] bumped libgpg-error dependency to 1.41" },
+    "pinentry": { "pkg_version": "13", "reason": "[1.1.0] bumped libgpg-error dependency to 1.41, libassuan to 2.5.4" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }
