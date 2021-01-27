@@ -34,6 +34,7 @@ tarballs_keys=(
   'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6'  # Werner Koch 2011-2021
   '031EC2536E580D8EA286A9F22071B08A33BD3F06'  # NIIBE Yutaka
   '1F42418905D8206AA754CCDC29EE58B996865171'  # Nikos Mavrogiannopoulos (GnuTLS)
+  '462225C3B46F34879FC8496CD605848ED7E69871'  # Daiki Ueno (GnuTLS)
   '343C2FF0FBEE5EC2EDBEF399F3599FF828C67298'  # Niels Möller
   )
 tarballs_file='confs/tarballs-keyring.asc'
@@ -114,11 +115,16 @@ _update_userkeyring() {
 
 _update_file_from_userkeyring() {
   local t; t="$(set_for_tag "$1")"; eval "${t:-false}"; unset t
+  local onekey
   note "Exporting to ${file}: ${keys}"
-  "${GPG}" </dev/null --batch \
-    --armor \
-    --export-options "export-local-sigs export-clean" \
-    --export $keys  > "$file"
+  for onekey in $keys; do
+    echo "# $onekey"
+    "${GPG}" </dev/null --batch \
+      --armor \
+      --export-options "export-local-sigs export-clean" \
+      --export "$onekey"
+    echo
+  done > "$file"
 }
 
 update_for_tag() {
