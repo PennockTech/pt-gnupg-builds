@@ -22,6 +22,7 @@ tags=""
 swdb_keys=(
   'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6'  # Werner Koch
   '5B80C5754298F0CB55D8ED6ABCEF7E294B092E28'  # Andre Heinecke
+  '4FA2082362FE73AD03B88830A8DC7067E25FBABB'  # Damien Goutte-Gattat
   )
 swdb_file='confs/pgp-swdb-signing-key.asc'
 tags="${tags} swdb"
