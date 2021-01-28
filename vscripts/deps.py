@@ -16,6 +16,7 @@ import datetime
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -351,7 +352,25 @@ class BuildPlan(object):
     self._record_done_stage(product, STAGENAME)
 
   def patch(self, product):
-    print('warning: patching unimplemented so far (YAGNI until you do)', file=sys.stderr, flush=True)
+    STAGENAME = 'patch'
+    if self._have_done_stage(product, STAGENAME):
+      self._print_already(STAGENAME)
+      return
+    patch_files = [f for f in os.listdir(self.options.patches_dir) if f.startswith(product.name)]
+    if not patch_files:
+      print('No patches for {}'.format(product.name), file=sys.stderr, flush=True)
+      self._record_done_stage(product, STAGENAME)
+      return
+    level_extractor = re.compile(r'_p(\d+)_')
+    for patch_short in patch_files:
+      patch = os.path.join(self.options.patches_dir, patch_short)
+      patch_strip = 1
+      m = level_extractor.match(patch_short[len(product.name):])
+      if m is not None:
+        patch_strip = int(m.group(1))
+      subprocess.check_call(['patch', '-p' + str(patch_strip)],
+          stdout=sys.stdout, stderr=sys.stderr, stdin=open(patch, 'rb'))
+    self._record_done_stage(product, STAGENAME)
 
   def run_configure(self, product, params, envs):
     STAGENAME = 'configure'
