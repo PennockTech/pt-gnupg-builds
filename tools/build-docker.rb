@@ -17,8 +17,11 @@ OptionParser.new do |opts|
   opts.on("-l", "--list", "List known targets and exit") do |v|
     $options[:list] = true
   end
-  opts.on("--skip-os-update", "Skip OS update") do |v|
+  opts.on("--[no-]skip-os-update", "Skip OS update") do |v|
     $options[:skip_os_update] = true
+  end
+  opts.on("-k", "--[no-]keep-failed-builds", "Do not delete container for failed builds") do |v|
+    $options[:keep_failed_builds] = true
   end
 end.parse!
 
@@ -92,6 +95,7 @@ def run_container(wanted_name)
 
 
   container_id = nil
+  build_succeeded = false
   begin
     d_run_argv = ["docker", "run", "-dt"]
     $vbuild_env.each do |k, v|
@@ -155,12 +159,15 @@ def run_container(wanted_name)
       return false
     end
 
+    build_succeeded = true
     return true
 
   ensure
     if ! container_id.nil?
-      puts "[#{spec.name}] killing container (#{image}): #{container_id}"
-      system("docker", "rm", container_id)
+      if build_succeeded || ! $options[:keep_failed_builds]
+        puts "[#{spec.name}] killing container (#{image}): #{container_id}"
+        system("docker", "rm", container_id)
+      end
     end
   end
 
