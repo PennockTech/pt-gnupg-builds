@@ -81,6 +81,7 @@
         "--with-libassuan-prefix=#{prefix}",
         "--enable-pinentry-curses",
         "--enable-pinentry-tty",
+        "--disable-pinentry-qt5",
         "--enable-libsecret"
       ],
       "os-deps": {
