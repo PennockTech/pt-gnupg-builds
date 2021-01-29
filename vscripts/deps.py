@@ -96,6 +96,7 @@ class BuildPlan(object):
 
     self.needs = collections.defaultdict(set)
     self.direct_needs = {}
+    self.direct_needs_version_constraints = {}
     for l in open(fn):
       before, after = l.strip().split()
       if before == after:
@@ -166,11 +167,12 @@ class BuildPlan(object):
       self.other_versions['overrides'] = {}
     else:
       for pname in self.other_versions['overrides']:
-        if 'build_version' not in self.other_versions['overrides'][pname]:
-          continue
-        if pname not in self.products:
-          raise Error('Unknown product to override: {!r}'.format(pname))
-        self.products[pname].ver = self.other_versions['overrides'][pname]['build_version']
+        if 'build_version' in self.other_versions['overrides'][pname]:
+          if pname not in self.products:
+            raise Error('Unknown product to override: {!r}'.format(pname))
+          self.products[pname].ver = self.other_versions['overrides'][pname]['build_version']
+        if 'depends' in self.other_versions['overrides'][pname]:
+          self.direct_needs_version_constraints[pname] = self.other_versions['overrides'][pname]['depends']
 
   def process_configures(self, cfn=None):
     if cfn is None:
@@ -458,8 +460,11 @@ class BuildPlan(object):
       '-v', full_version,
       ]
     for depname in self.direct_needs[product.name]:
+      dependency = self.options.pkg_prefix + '_' + depname
+      if (product.name in self.direct_needs_version_constraints and depname in self.direct_needs_version_constraints[product.name]):
+        dependency += ' ' + self.direct_needs_version_constraints[product.name][depname]
       cmdline.append('-d')
-      cmdline.append(self.options.pkg_prefix + '_' + depname)
+      cmdline.append(dependency)
     for dep in self.configures['packages'][product.name].get('os-deps', {}).get(self.options.ostype, []):
       cmdline.append('-d')
       cmdline.append(dep)

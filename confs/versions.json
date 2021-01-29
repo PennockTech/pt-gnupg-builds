@@ -6,7 +6,11 @@
     "gnutls": { "version": "3.6.15", "compress": "xz", "urlbase": "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/" }
   },
   "overrides": {
-    "gnupg22": { "pkg_version": "3", "reason": "[2.2.27] reverted libgcrypt dependency to 1.8.7" },
+    "gnupg22": { "pkg_version": "4", "reason": "[2.2.27] reverted libgcrypt dependency to 1.8.7",
+      "depends": {
+        "libgcrypt": "= 1.8.7-pt3"
+      }
+    },
     "libgcrypt": { "build_version": "1.8.7", "pkg_version": "3", "reason": "[1.8.7] reverted down from 1.9.0" },
     "gnutls": { "pkg_version": "3", "reason": "[3.6.15] bumped nettle dependency to 3.7" },
     "libksba": { "pkg_version": "2", "reason": "[1.5.0] bumped libgpg-error dependency to 1.41" },
