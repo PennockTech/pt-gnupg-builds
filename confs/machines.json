@@ -6,7 +6,7 @@
     "base_script": "debian-family",
     "repo_endpoints": [
       {
-        "spec": "pt/ubuntu/focal"
+        "spec": "filesystem:morales:pt/ubuntu/focal"
       },
       {
         "spec": "s3:pennocktech:pt/ubuntu/focal",
@@ -22,7 +22,7 @@
     "base_script": "debian-family",
     "repo_endpoints": [
       {
-        "spec": "pt/debian/buster"
+        "spec": "filesystem:morales:pt/debian/buster"
       },
       {
         "spec": "s3:pennocktech:pt/debian/buster",
@@ -40,7 +40,7 @@
     "gpg_command": "gpg2",
     "repo_endpoints": [
       {
-        "spec": "pt/ubuntu/xenial"
+        "spec": "filesystem:morales:pt/ubuntu/xenial"
       },
       {
         "spec": "s3:pennocktech:pt/ubuntu/xenial",
@@ -57,7 +57,7 @@
     "base_script": "debian-family",
     "repo_endpoints": [
       {
-        "spec": "pt/debian/stretch"
+        "spec": "filesystem:morales:pt/debian/stretch"
       },
       {
         "spec": "s3:pennocktech:pt/debian/stretch",
@@ -74,7 +74,7 @@
     "base_script": "debian-family",
     "repo_endpoints": [
       {
-        "spec": "pt/ubuntu/bionic"
+        "spec": "filesystem:morales:pt/ubuntu/bionic"
       },
       {
         "spec": "s3:pennocktech:pt/ubuntu/bionic",
