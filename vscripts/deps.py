@@ -51,7 +51,8 @@ PKG_UNINSTALL_CMD = '/usr/local/bin/pt-build-pkg-uninstall'
 
 PACKAGE_TYPES = {
     'debian-family': 'deb',
-    }
+}
+
 
 class Error(Exception):
   """Base class for exceptions from build."""
@@ -59,10 +60,18 @@ class Error(Exception):
 
 
 class Product(object):
-  __slots__ = [
+  __slots__ = (
       'name', 'ver', 'date', 'size', 'sha1', 'sha2', 'branch', 'sha1_gz',
       'product', 'filename_base', 'dirname', 'tarball', 'third_party',
-      ]
+  )
+
+  def __init__(self):
+    # python checkers are complaining about non-existent property names because
+    # they're not checking __slots__, so shut them up.
+    self.name = self.ver = self.date = self.size = self.sha1 = self.sha2 = ''
+    self.branch = self.sha1_gz = self.product = self.filename_base = self.dirname = ''
+    self.tarball = self.third_party = ''
+
   def as_dict(self):
     """as_dict returns a dict clone of the Product, for JSON serialization."""
     x = {}
@@ -71,15 +80,19 @@ class Product(object):
         x[s] = getattr(self, s)
     return x
 
+
 class OurJSONEncoder(json.JSONEncoder):
   """OurJSONEncoder handles as_dict methods for less sucky JSON encoding."""
+
   def default(self, o):
     if hasattr(o, 'as_dict'):
       return o.as_dict()
     return json.JSONEncoder.default(self, o)
 
+
 class BuildPlan(object):
   """BuildPlan represents our state of knowledge around what needs to happen."""
+
   def __init__(self, options):
     self.options = options
     self._get_depends(options.dependencies_file)
@@ -145,7 +158,7 @@ class BuildPlan(object):
         p.product = prod
         p.name = prod.replace('_', '-')
         p.filename_base = p.name
-        if p.name.startswith('gnupg2'):
+        if p.name.startswith(('gnupg2', 'gnupg3')):
           p.filename_base = 'gnupg'
         p.third_party = False
       setattr(p, attr, value)
@@ -190,12 +203,12 @@ class BuildPlan(object):
       else:
         self.ensure_3rdparty_product(product, tardir)
 
-  def ensure_swdb_product(self, product, tardir):
+  def ensure_swdb_product(self, product: Product, tardir):
     fn = '{0.filename_base}-{0.ver}.tar.bz2'.format(product)
     want_path = os.path.join(tardir, fn)
     dl_src = '{o.mirror}{slash}{p.filename_base}/{fn}'.format(
         o=self.options, p=product, fn=fn,
-        slash = '' if self.options.mirror.endswith('/') else '/')
+        slash='' if self.options.mirror.endswith('/') else '/')
 
     self.check_and_download(product.name, want_path, dl_src)
     self.products[product.name].tarball = want_path
@@ -211,7 +224,7 @@ class BuildPlan(object):
     subprocess.check_call([self.options.gpg, '--trust-model', self.options.gnupg_trust_model, '--verify', want_path + ext],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
 
-  def ensure_3rdparty_product(self, product, tardir):
+  def ensure_3rdparty_product(self, product: Product, tardir):
     if product not in self.other_versions['products']:
       raise Error('no version configured in {o.versions_file} for {p}'.format(
         o=self.options, p=product))
@@ -221,7 +234,7 @@ class BuildPlan(object):
     want_path = os.path.join(tardir, fn)
     dl_src = '{other[urlbase]}{slash}{fn}'.format(
         other=other, fn=fn,
-        slash = '' if other['urlbase'].endswith('/') else '/')
+        slash='' if other['urlbase'].endswith('/') else '/')
 
     self.check_and_download(product, want_path, dl_src)
     p = Product()
@@ -260,28 +273,28 @@ class BuildPlan(object):
   def _normalize_list(self, items):
     return list(map(lambda s: s.replace('#{prefix}', self.configures['prefix']), items))
 
-  def _some_file_for_stage(self, product, stage, prefix):
+  def _some_file_for_stage(self, product: Product, stage, prefix):
     return os.path.join(
         os.path.expanduser(self.options.base_dir),
         '.{prefix}.{p.name}.{stage}'.format(p=product, stage=stage, prefix=prefix))
 
-  def _flagfile_for_stage(self, product, stage):
+  def _flagfile_for_stage(self, product: Product, stage):
     # _could_ use inspect module to auto-determine stage, but prefer slightly less magic
     return self._some_file_for_stage(product, stage, 'done')
 
-  def _stdout_for_stage(self, product, stage):
+  def _stdout_for_stage(self, product: Product, stage):
     return self._some_file_for_stage(product, stage, 'stdout')
 
-  def _stderr_for_stage(self, product, stage):
+  def _stderr_for_stage(self, product: Product, stage):
     return self._some_file_for_stage(product, stage, 'stderr')
 
-  def _record_done_stage(self, product, stage, content=None):
+  def _record_done_stage(self, product: Product, stage, content=None):
     with open(self._flagfile_for_stage(product, stage), 'w') as fh:
       if content is None:
         content = datetime.datetime.now().isoformat()
       print(content, file=fh)
 
-  def _have_done_stage(self, product, stage, want_content=False):
+  def _have_done_stage(self, product: Product, stage, want_content=False):
     if not want_content:
       return os.path.exists(self._flagfile_for_stage(product, stage))
     try:
@@ -292,7 +305,7 @@ class BuildPlan(object):
   def _print_already(self, stagename):
     print('\033[34m[{}] Already: \033[3m{}\033[0m'.format(self.options.boxname, stagename), flush=True)
 
-  def build_one(self, product_name):
+  def build_one(self, product_name: str):
     if product_name not in self.configures['packages']:
       raise Error('missing configure information for {!r}'.format(product_name))
     params = self._normalize_list(self.configures['common_params'] + self.configures['packages'][product_name].get('params', []))
@@ -317,11 +330,11 @@ class BuildPlan(object):
       tmp = self.install_temptree(product)
       self.prepackage_fixup(product, tmp)
       pkg_path = self.package(product, tmp)
-      self.install_package(product, pkg_path) # need for later packages to build
+      self.install_package(product, pkg_path)  # need for later packages to build
     finally:
       os.chdir(os.path.expanduser(self.options.base_dir))
 
-  def ensure_clear_for(self, product):
+  def ensure_clear_for(self, product: Product):
     if product.name not in self.mutually_excluded:
       print('\033[38;5;49mNo packages defined as conflicting with {!r}\033[0m'.format(product.name), flush=True)
       return
@@ -341,8 +354,7 @@ class BuildPlan(object):
       print('\033[38;5;49mNo packages conflicting with {p.name!r} were installed [set: {s}]\033[0m'.format(
         p=product, s=' '.join(self.mutually_excluded[product.name])), flush=True)
 
-
-  def untar(self, product, tarball, expected_dirname):
+  def untar(self, product: Product, tarball, expected_dirname):
     STAGENAME = 'untar'
     if self._have_done_stage(product, STAGENAME):
       self._print_already(STAGENAME)
@@ -353,12 +365,13 @@ class BuildPlan(object):
       raise Error('Missing expected dir {!r} from {!r}'.format(expected_dirname, tarball))
     self._record_done_stage(product, STAGENAME)
 
-  def patch(self, product):
+  def patch(self, product: Product):
     STAGENAME = 'patch'
     if self._have_done_stage(product, STAGENAME):
       self._print_already(STAGENAME)
       return
-    patch_files = [f for f in os.listdir(self.options.patches_dir) if f.startswith(product.name)]
+    our_patches_re = re.compile(r'^' + re.escape(product.name) + '_(?:(?:v' + re.escape(product.ver) + ')|[^v])')
+    patch_files = [f for f in os.listdir(self.options.patches_dir) if our_patches_re.match(f)]
     if not patch_files:
       print('No patches for {}'.format(product.name), file=sys.stderr, flush=True)
       self._record_done_stage(product, STAGENAME)
@@ -374,7 +387,7 @@ class BuildPlan(object):
           stdout=sys.stdout, stderr=sys.stderr, stdin=open(patch, 'rb'))
     self._record_done_stage(product, STAGENAME)
 
-  def run_configure(self, product, params, envs):
+  def run_configure(self, product: Product, params, envs):
     STAGENAME = 'configure'
     if self._have_done_stage(product, STAGENAME):
       self._print_already(STAGENAME)
@@ -396,7 +409,7 @@ class BuildPlan(object):
             env=newenv)
     self._record_done_stage(product, STAGENAME)
 
-  def install_temptree(self, product):
+  def install_temptree(self, product: Product):
     """Returns the tree where the content is."""
     STAGENAME = 'tmpinstall'
     already = self._have_done_stage(product, STAGENAME, want_content=True)
@@ -414,7 +427,7 @@ class BuildPlan(object):
     self._record_done_stage(product, STAGENAME, content=tree)
     return tree
 
-  def prepackage_fixup(self, product, temp_tree):
+  def prepackage_fixup(self, product: Product, temp_tree):
     STAGENAME = 'prepackage-fixup'
     if self._have_done_stage(product, STAGENAME):
       self._print_already(STAGENAME)
@@ -426,20 +439,20 @@ class BuildPlan(object):
           stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
     self._record_done_stage(product, STAGENAME)
 
-  def _pkg_full_version(self, product):
+  def _pkg_full_version(self, product: Product):
     overrides = self.other_versions['overrides'].get(product.name, {})
     pkgver = str(overrides.get('pkg_version', '1'))  # protect against `3` where expected `"3"`
     return '{p.ver}-{opts.pkg_version_ext}{pkgver}'.format(
         p=product, opts=self.options, pkgver=pkgver)
 
-  def _pkg_generated_pathname(self, product):
+  def _pkg_generated_pathname(self, product: Product):
     # This depends upon the -p option to `fpm` in .package(), but fpm does interpolation.
     # FIXME: _amd_64.deb hardcoded:
     return os.path.join(self.options.results_dir,
       self.options.pkg_prefix + '-' + product.filename_base + '_' + self._pkg_full_version(product) + '_amd64.deb'
       )
 
-  def package(self, product, temp_tree):
+  def package(self, product: Product, temp_tree):
     STAGENAME = 'package'
     already = self._have_done_stage(product, STAGENAME, want_content=True)
     if already:
@@ -468,14 +481,14 @@ class BuildPlan(object):
     for dep in self.configures['packages'][product.name].get('os-deps', {}).get(self.options.ostype, []):
       cmdline.append('-d')
       cmdline.append(dep)
-    cmdline.append(os.path.normpath(self.configures['prefix']).lstrip(os.path.sep).split(os.path.sep)[0]) # aka: 'opt'
+    cmdline.append(os.path.normpath(self.configures['prefix']).lstrip(os.path.sep).split(os.path.sep)[0])  # aka: 'opt'
     subprocess.check_call(cmdline,
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
     pkgname = self._pkg_generated_pathname(product)
     self._record_done_stage(product, STAGENAME, content=pkgname)
     return pkgname
 
-  def install_package(self, product, pkgpath):
+  def install_package(self, product: Product, pkgpath):
     STAGENAME = 'install_pkg'
     if self._have_done_stage(product, STAGENAME):
       self._print_already(STAGENAME)
@@ -485,7 +498,7 @@ class BuildPlan(object):
     self._record_done_stage(product, STAGENAME)
     self.installed.add(product.name)
 
-  def uninstall(self, product):
+  def uninstall(self, product: Product):
     # should we nuke stagenames for this product?
     subprocess.check_call([PKG_UNINSTALL_CMD, self.options.pkg_prefix + '-' + product.filename_base],
         stdout=sys.stdout, stderr=sys.stderr, stdin=open(os.devnull, 'r'))
@@ -506,6 +519,7 @@ class BuildPlan(object):
         print('  {}'.format(p))
     else:
       print('.')
+
 
 def _main(args, argv0):
   parser = argparse.ArgumentParser(
@@ -591,11 +605,12 @@ def _main(args, argv0):
   print('FIXME: load in patch-levels, load in per-product patch paths!', flush=True)
   plan.build_each()
 
-  #json.dump(plan.products, fp=sys.stdout, indent=2, cls=OurJSONEncoder)
-  #print()
+  # json.dump(plan.products, fp=sys.stdout, indent=2, cls=OurJSONEncoder)
+  # print()
   plan.report()
 
   return 0
+
 
 if __name__ == '__main__':
   argv0 = sys.argv[0].rsplit('/')[-1]

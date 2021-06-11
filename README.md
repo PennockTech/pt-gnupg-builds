@@ -111,6 +111,12 @@ Updating
 * Changes in PGP signing keys will need to be reflected _both_ in the
   key-dumps in `confs/` and in `pgp_ownertrusts` defined in `confs/params.env`
   + `./tools/update-keys.sh` might help with some of that
+* Patches should be named starting with the product name (eg, `gnupg22`) and
+  an underscore.  The next section may optionally start with `v` to be a
+  version constraint; use this when the patch is already committed upstream
+  for the next release version.  Anywhere in the patch filename may be a
+  sequence `_pNNN_` where NNN is a prefix strip level (per `patch -p`) to be
+  applied.
 
 
 Adding new repo with aptly
@@ -140,5 +146,4 @@ We could move repo creation in-tool too, but currently leaving that out.
 Todo
 ----
 
-* Have `patches/gnupg21-2.1.23-*` and `patches/gnupg21-all-*`
 * Audit for `XXX`, `FIXME`, `TODO`, `UNIMPLEMENTED`
