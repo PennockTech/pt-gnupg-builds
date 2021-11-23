@@ -20,10 +20,13 @@ set -eu
 
 tags=""
 swdb_keys=(
-  '6DAA6E64A76D2840571B4902528897B826403ADA'  # Werner Koch 2020-2030
-  'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6'  # Werner Koch 2011-2021
-  '5B80C5754298F0CB55D8ED6ABCEF7E294B092E28'  # Andre Heinecke
-  '4FA2082362FE73AD03B88830A8DC7067E25FBABB'  # Damien Goutte-Gattat
+  # These can actually come from g10/distsigkey.gpg in the gnupg.git repo.
+  # If re-doing this script afresh now, we might just copy straight from there.
+  '6DAA6E64A76D2840571B4902528897B826403ADA'  # Werner Koch     2020-2030
+  'D8692123C4065DEA5E0F3AB5249B39D24F25E3B6'  # Werner Koch     2011-2021 [not in g10/distsigkey.gpg, keep for now for older files]
+  '5B80C5754298F0CB55D8ED6ABCEF7E294B092E28'  # Andre Heinecke  2017-2027
+  'AC8E115BF73E2D8D47FA9908E98E9B2D19C6C8BD'  # Niibe Yutaka    2021-2027
+  '02F38DFF731FF97CB039A1DA549E695E905BA208'  # GnuPG.com       2021-2029
   )
 swdb_file='confs/pgp-swdb-signing-key.asc'
 tags="${tags} swdb"
