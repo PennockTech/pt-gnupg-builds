@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'io/console'
 require 'json'
 require 'optparse'
 require 'pathname'
@@ -27,6 +28,27 @@ end.parse!
 
 # support.rb
 source_site_env
+
+def banner(title, big: false)
+  @columns ||= IO.console.winsize[1]
+  @start ||= STDOUT.isatty ? "\e[36;1m" : ''
+  @end ||= STDOUT.isatty ? "\e[m" : ''
+  if big
+    # We are in the middle of a Very Large amount of text, we really want to stand out a lot.
+    # Obnoxiously so, if need be: should be visible when scrolling through terminal history at speed.
+    # ╭─╮       ╭─╮ ╭─╮   🮮
+    # ├─┤ title ├─┼─┼─┼───┤
+    # 🮮 └───────┘ └─┘ └───┘
+    repeat_count = (@columns - title.length - 7) / 4
+    right_pad = (@columns - title.length - 7) % 4
+    puts "#{@start}╭─╮" + (" " * (title.length + 2)) + ("╭─╮ " * repeat_count) + (" " * right_pad) + "🮮"
+    puts "├─┤ #{title} ├─┼─" + ("┼─┼─" * (repeat_count-1)) + ("─" * right_pad) + "┤"
+    puts "🮮 └" + ("─" * (title.length + 2)) + ("┘ └─" * repeat_count) + ("─" * right_pad) + "┘#{@end}"
+  else
+    # Same as the publish-packages.rb implementation
+    puts "#{@start}───┤ #{title} ├" + ("─" * (@columns - title.length - 8)) + "#{@end}"
+  end
+end
 
 class MissingDockerImagesError < StandardError; end
 
@@ -142,6 +164,8 @@ def run_container(wanted_name)
 #      'kill -1 1',   # most reliable shutdown method
 #    ]
 
+    # If debugging this script and you don't want to actually run the docker
+    # container, and a failure is okay, then just add -n to the flags to bash
     d_run_argv += [ '/bin/bash', '-c', bash_commands.join(' && ')]
     $stderr.puts "+ #{d_run_argv.shelljoin}\n"
     IO.popen(d_run_argv) do |out|
@@ -188,6 +212,7 @@ all_names_okay = true
 valid_names = []
 invalid_names = []
 ARGV.each do |name|
+  banner "validate: #{name}"
   if !$pt_seen_containers.include?(name)
     raise "no valid docker images for building: #{name}"
   end
@@ -211,6 +236,7 @@ end
 succeeded = []
 failed = []
 ARGV.each do |name|
+  banner name, big: true
   if run_container name
     succeeded.append(name)
   else
