@@ -17,6 +17,22 @@
   },
 
   {
+    "name": "impish",
+    "docker": ["ptgnupg-impish", "ubuntu:impish"],
+    "base_script": "debian-family",
+    "repo_endpoints": [
+      {
+        "spec": "filesystem:morales:pt/ubuntu/impish"
+      },
+      {
+        "spec": "s3:pennocktech:pt/ubuntu/impish",
+        "aws_profile": "pennocktech",
+        "aws_cloudfront": "EFI5I7XJ5E6BC"
+      }
+    ]
+  },
+
+  {
     "name": "buster",
     "docker": ["ptgnupg-buster", "debian:buster"],
     "base_script": "debian-family",
