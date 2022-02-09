@@ -8,13 +8,13 @@
   "overrides": {
     "gnupg22": {
       "depends": {
-        "libgcrypt": "= 1.8.7-pt5"
+        "libgcrypt": "= 1.8.7-pt6"
       }
     },
-    "libassuan": { "pkg_version": "2", "reason": "[2.5.5] bumped libgpg-error dependency to 1.43" },
-    "libgcrypt": { "build_version": "1.8.7", "pkg_version": "5", "reason": "[1.8.7] reverted down from 1.9.0; bumped libgpg-error dependency to 1.43" },
-    "libksba": { "pkg_version": "2", "reason": "[1.6.0] bumped libgpg-error dependency to 1.43" },
-    "pinentry": { "pkg_version": "2", "reason": "[1.2.0] bumped libgpg-error dependency to 1.43" }
+    "libassuan": { "pkg_version": "3", "reason": "[2.5.5] bumped libgpg-error dependency to 1.44" },
+    "libgcrypt": { "build_version": "1.8.7", "pkg_version": "6", "reason": "[1.8.7] reverted down from 1.9.0; bumped libgpg-error dependency to 1.44" },
+    "libksba": { "pkg_version": "3", "reason": "[1.6.0] bumped libgpg-error dependency to 1.44" },
+    "pinentry": { "pkg_version": "3", "reason": "[1.2.0] bumped libgpg-error dependency to 1.44" }
   },
   "_final": "vim: set ft=json sw=2 :"
 }
